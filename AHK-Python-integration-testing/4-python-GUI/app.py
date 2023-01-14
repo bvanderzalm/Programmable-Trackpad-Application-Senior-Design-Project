@@ -1,4 +1,4 @@
-import customtkinter
+import customtkinter, os, sys
 
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("dark-blue")
@@ -7,7 +7,10 @@ root = customtkinter.CTk()
 root.geometry("500x350")
 
 def login():
-    print("Test")
+    path = "our-project-program-files/Exe-files/"
+    os.chdir(path)
+    os.popen("test-script.exe")
+    sys.exit(0)
 
 frame = customtkinter.CTkFrame(master=root)
 frame.pack(pady=20, padx=60, fill="both", expand=True)
