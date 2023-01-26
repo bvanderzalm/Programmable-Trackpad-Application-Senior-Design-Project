@@ -91,9 +91,10 @@ class App(customtkinter.CTk):
         path = "program-files/"
         os.chdir(path)
         os.popen("macro-pad.exe")
+        os.chdir("..")
 
     def stop_ahk(self):
-        print('stop ahk')
+        os.system("taskkill /im macro-pad.exe")
 
     def change_appearance_mode(self, new_appearance_mode: str):
         customtkinter.set_appearance_mode(new_appearance_mode)
