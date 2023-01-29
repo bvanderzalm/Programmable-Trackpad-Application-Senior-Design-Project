@@ -100,8 +100,10 @@ class App(customtkinter.CTk):
         keys = [key1, key2, key3, key4]
         counter = 1
 
+        # Write to newly created text file with .ahk extension
         for key in keys:
             functionKey: str = "F" + str(counter)
+            # Add AutoHotKey remapping functions to text file
             match key:
                 case "Google search selected text":
                     f.write("{\n" + functionKey + "::\n\tSend, ^c\n\tSleep 50\n\tRun, https://www.google.com/search?q=%clipboard%\n\tReturn\n}\n\n")
@@ -113,10 +115,15 @@ class App(customtkinter.CTk):
                     f.write(functionKey + "::Send ! {{Up}}\n\n")
             counter = counter + 1
         
+        # Save newly created .ahk file
         f.close()
+
         path: str = "program-files/"
         os.chdir(path)
+        # Compile .ahk file into .exe using AHK's compiler
         os.popen('Ahk2Exe.exe /in "macro-pad.ahk"').read()
+
+        # Run .exe that will remap function keys and go back to root directory
         os.popen('macro-pad.exe')
         os.chdir('..')
 
