@@ -88,10 +88,38 @@ class App(customtkinter.CTk):
         print(self.entry.get())
 
     def run_ahk(self):
-        path = "program-files/"
+        key1 = "Google search selected text"
+        key2 = "Open UCF site"
+        key4 = "Open Notepad"
+        key3 = "Move up a folder"
+
+        self.create_and_run_ahk_script(key1, key2, key3, key4)
+
+    def create_and_run_ahk_script(self, key1: str, key2: str, key3: str, key4: str):
+        f = open("program-files/macro-pad.ahk", "w")            
+        keys = [key1, key2, key3, key4]
+        counter = 1
+
+        for key in keys:
+            functionKey: str = "F" + str(counter)
+            match key:
+                case "Google search selected text":
+                    f.write("{\n" + functionKey + "::\n\tSend, ^c\n\tSleep 50\n\tRun, https://www.google.com/search?q=%clipboard%\n\tReturn\n}\n\n")
+                case "Open UCF site":
+                    f.write(functionKey + '::Run, Chrome.exe "https://www.ucf.edu"\n\n')
+                case "Open Notepad":
+                    f.write(functionKey + "::Run Notepad\n\n")
+                case "Move up a folder":
+                    f.write(functionKey + "::Send ! {{Up}}\n\n")
+            counter = counter + 1
+        
+        f.close()
+        path: str = "program-files/"
         os.chdir(path)
-        os.popen("macro-pad.exe")
-        os.chdir("..")
+        os.popen('Ahk2Exe.exe /in "macro-pad.ahk"').read()
+        os.popen('macro-pad.exe')
+        os.chdir('..')
+
 
     def stop_ahk(self):
         os.system("taskkill /im macro-pad.exe")
