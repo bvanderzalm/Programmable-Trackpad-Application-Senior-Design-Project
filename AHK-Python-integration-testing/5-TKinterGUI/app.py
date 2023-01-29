@@ -112,7 +112,7 @@ class App(customtkinter.CTk):
                 case "Open Notepad":
                     f.write(functionKey + "::Run Notepad\n\n")
                 case "Move up a folder":
-                    f.write(functionKey + "::Send ! {{Up}}\n\n")
+                    f.write(functionKey + "::Send !{Up}\n\n")
             counter = counter + 1
         
         # Save newly created .ahk file
