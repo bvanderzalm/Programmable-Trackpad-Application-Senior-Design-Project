@@ -8,6 +8,11 @@ class App(customtkinter.CTk):
     APP_NAME = "Programmable MacroPad"
     WIDTH = 800
     HEIGHT = 500
+    MACRO_LIST: list[str] = ["Google search selected text", "Open UCF site", "Open Notepad", "Move up a folder"]
+    KEY1: str
+    KEY2: str
+    KEY3: str
+    KEY4: str
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -48,11 +53,11 @@ class App(customtkinter.CTk):
                                                 command=self.stop_ahk)
         self.button_2.grid(pady=(20, 0), padx=(20, 20), row=1, column=0)
 
-        self.map_label = customtkinter.CTkLabel(self.frame_left, text="Select Macros:", anchor="w")
-        self.map_label.grid(row=3, column=0, padx=(20, 20), pady=(20, 0))
-        self.map_option_menu = customtkinter.CTkOptionMenu(self.frame_left, values=["F1 - Google search selected text", "F2 - Open UCF site", "F3 - Open Notepad", "F4 - Move up a folder"],
+        self.macro_label = customtkinter.CTkLabel(self.frame_left, text="Select Macros:", anchor="w")
+        self.macro_label.grid(row=3, column=0, padx=(20, 20), pady=(20, 0))
+        self.macro_option_menu = customtkinter.CTkOptionMenu(self.frame_left, values=["F1 - Google search selected text", "F2 - Open UCF site", "F3 - Open Notepad", "F4 - Move up a folder"],
                                                                        command=self.edit_macro)
-        self.map_option_menu.grid(row=4, column=0, padx=(20, 20), pady=(10, 0))
+        self.macro_option_menu.grid(row=4, column=0, padx=(20, 20), pady=(10, 0))
 
         self.appearance_mode_label = customtkinter.CTkLabel(self.frame_left, text="Appearance Mode:", anchor="w")
         self.appearance_mode_label.grid(row=5, column=0, padx=(20, 20), pady=(20, 0))
@@ -79,7 +84,28 @@ class App(customtkinter.CTk):
                                                 text="Search",
                                                 width=90,
                                                 command=self.search_preset)
-        self.button_5.grid(row=0, column=1, sticky="w", padx=(12, 0), pady=12)
+        self.button_5.grid(row=0, column=2, sticky="w", padx=(12, 0), pady=12)
+
+        self.key1_label = customtkinter.CTkLabel(self.frame_right, text="First function key:", anchor="w")
+        self.key2_label = customtkinter.CTkLabel(self.frame_right, text="Second function key:", anchor="w")
+        self.key3_label = customtkinter.CTkLabel(self.frame_right, text="Third function key:", anchor="w")
+        self.key4_label = customtkinter.CTkLabel(self.frame_right, text="Fourth function key:", anchor="w")
+
+        self.key1_label.grid(row=1, column=0, sticky="w", padx=(10, 10), pady=(0, 0))
+        self.key2_label.grid(row=2, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
+        self.key3_label.grid(row=3, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
+        self.key4_label.grid(row=4, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
+
+        self.key1_option_menu = customtkinter.CTkOptionMenu(self.frame_right, values=App.MACRO_LIST, command=self.update_key1)
+        self.key2_option_menu = customtkinter.CTkOptionMenu(self.frame_right, values=App.MACRO_LIST, command=self.update_key2)
+        self.key3_option_menu = customtkinter.CTkOptionMenu(self.frame_right, values=App.MACRO_LIST, command=self.update_key3)
+        self.key4_option_menu = customtkinter.CTkOptionMenu(self.frame_right, values=App.MACRO_LIST, command=self.update_key4)
+
+        self.key1_option_menu.grid(row=1, column=1, padx=(10,10), pady=(10, 0))
+        self.key2_option_menu.grid(row=2, column=1, padx=(10,10), pady=(10, 0))
+        self.key3_option_menu.grid(row=3, column=1, padx=(10,10), pady=(10, 0))
+        self.key4_option_menu.grid(row=4, column=1, padx=(10,10), pady=(10, 0))
+
 
         # Set default values
         self.appearance_mode_optionemenu.set("System")
@@ -88,12 +114,7 @@ class App(customtkinter.CTk):
         print(self.entry.get())
 
     def run_ahk(self):
-        key1 = "Google search selected text"
-        key2 = "Open UCF site"
-        key4 = "Open Notepad"
-        key3 = "Move up a folder"
-
-        self.create_and_run_ahk_script(key1, key2, key3, key4)
+        self.create_and_run_ahk_script(App.KEY1, App.KEY2, App.KEY3, App.KEY4)
 
     def create_and_run_ahk_script(self, key1: str, key2: str, key3: str, key4: str):
         f = open("program-files/macro-pad.ahk", "w")            
@@ -130,6 +151,18 @@ class App(customtkinter.CTk):
 
     def stop_ahk(self):
         os.system("taskkill /im macro-pad.exe")
+    
+    def update_key1(self, selectedMacro: str):
+        App.KEY1 = selectedMacro
+
+    def update_key2(self, selectedMacro: str):
+        App.KEY2 = selectedMacro
+
+    def update_key3(self, selectedMacro: str):
+        App.KEY3 = selectedMacro
+
+    def update_key4(self, selectedMacro: str):
+        App.KEY4 = selectedMacro
 
     def change_appearance_mode(self, new_appearance_mode: str):
         customtkinter.set_appearance_mode(new_appearance_mode)
