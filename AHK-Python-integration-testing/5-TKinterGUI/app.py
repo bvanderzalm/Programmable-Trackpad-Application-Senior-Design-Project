@@ -1,5 +1,6 @@
-import customtkinter, os, sys
+import customtkinter, os
 
+customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
 
 
@@ -9,109 +10,90 @@ class App(customtkinter.CTk):
     WIDTH = 800
     HEIGHT = 500
     MACRO_LIST: list[str] = ["Google search selected text", "Open UCF site", "Open Notepad", "Move up a folder"]
-    KEY1: str
-    KEY2: str
-    KEY3: str
-    KEY4: str
+    KEY1: str = ''
+    KEY2: str = ''
+    KEY3: str = ''
+    KEY4: str = ''
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        # -- Setup main frame --
         self.title(App.APP_NAME)
         self.geometry("800x500")
-        # self.geometry(str(App.WIDTH) + "x" + str(App.HEIGHT))
         self.minsize(App.WIDTH, App.HEIGHT)
-
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.bind("<Command-w>", self.on_closing)
-
-        self.marker_list = []
-
-        # ============ create two CTkFrames ============
 
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        self.frame_left = customtkinter.CTkFrame(master=self, width=150, corner_radius=0, fg_color=None)
-        self.frame_left.grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
+        self.sidebar = customtkinter.CTkFrame(master=self, width=150, corner_radius=0)
+        self.sidebar.grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
 
-        self.frame_right = customtkinter.CTkFrame(master=self, corner_radius=0)
-        self.frame_right.grid(row=0, column=1, rowspan=1, pady=0, padx=0, sticky="nsew")
+        self.home = customtkinter.CTkFrame(master=self, corner_radius=0)
+        self.home.grid(row=0, column=1, rowspan=1, pady=0, padx=0, sticky="nsew")
 
-        # ============ frame_left ============
+        # -- Setup Sidebar component --
+        self.sidebar.grid_rowconfigure(2, weight=1)
 
-        self.frame_left.grid_rowconfigure(2, weight=1)
+        self.runAhkButton = customtkinter.CTkButton(master=self.sidebar, text="Program Board / Run AHK", command=self.run_ahk)
+        self.runAhkButton.grid(pady=(20, 0), padx=(20, 20), row=0, column=0)
 
-        self.button_1 = customtkinter.CTkButton(master=self.frame_left,
-                                                text="Program Board / Run AHK",
-                                                command=self.run_ahk)
-        self.button_1.grid(pady=(20, 0), padx=(20, 20), row=0, column=0)
+        self.stopAhkButton = customtkinter.CTkButton(master=self.sidebar,text="Stop AHK", command=self.stop_ahk)
+        self.stopAhkButton.grid(pady=(20, 0), padx=(20, 20), row=1, column=0)
 
-        self.button_2 = customtkinter.CTkButton(master=self.frame_left,
-                                                text="Stop AHK",
-                                                command=self.stop_ahk)
-        self.button_2.grid(pady=(20, 0), padx=(20, 20), row=1, column=0)
-
-        self.macro_label = customtkinter.CTkLabel(self.frame_left, text="Select Macros:", anchor="w")
+        self.macro_label = customtkinter.CTkLabel(self.sidebar, text="Select Macros:", anchor="w")
         self.macro_label.grid(row=3, column=0, padx=(20, 20), pady=(20, 0))
-        self.macro_option_menu = customtkinter.CTkOptionMenu(self.frame_left, values=["F1 - Google search selected text", "F2 - Open UCF site", "F3 - Open Notepad", "F4 - Move up a folder"],
+        self.macro_option_menu = customtkinter.CTkOptionMenu(self.sidebar, values=["F1 - Google search selected text", "F2 - Open UCF site", "F3 - Open Notepad", "F4 - Move up a folder"],
                                                                        command=self.edit_macro)
         self.macro_option_menu.grid(row=4, column=0, padx=(20, 20), pady=(10, 0))
 
-        self.appearance_mode_label = customtkinter.CTkLabel(self.frame_left, text="Appearance Mode:", anchor="w")
-        self.appearance_mode_label.grid(row=5, column=0, padx=(20, 20), pady=(20, 0))
-        self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.frame_left, values=["Light", "Dark", "System"],
-                                                                       command=self.change_appearance_mode)
-        self.appearance_mode_optionemenu.grid(row=6, column=0, padx=(20, 20), pady=(10, 20))
+        self.appearanceModeLabel = customtkinter.CTkLabel(self.sidebar, text="Appearance Mode:", anchor="w")
+        self.appearanceModeLabel.grid(row=5, column=0, padx=(20, 20), pady=(20, 0))
+        self.appearanceModeMenu = customtkinter.CTkOptionMenu(self.sidebar, values=["Light", "Dark", "System"], command=self.change_appearance_mode)
+        self.appearanceModeMenu.grid(row=6, column=0, padx=(20, 20), pady=(10, 20))
 
-        # ============ frame_right ============
+        # -- Setup Home component --
 
-        self.frame_right.grid_rowconfigure(1, weight=1)
-        self.frame_right.grid_rowconfigure(0, weight=0)
-        self.frame_right.grid_columnconfigure(0, weight=1)
-        self.frame_right.grid_columnconfigure(1, weight=0)
-        self.frame_right.grid_columnconfigure(2, weight=1)
+        self.searchBar = customtkinter.CTkEntry(master=self.home, placeholder_text="Search Preset", width=300)
+        self.searchBar.grid(row=0, column=0, sticky="we", padx=(12,0), pady=(12,12))
+        self.searchBar.bind("<Return>", self.search_preset)
 
+        self.searchButton = customtkinter.CTkButton(master=self.home, text="Search", width=90, command=self.search_preset)
+        self.searchButton.grid(row=0, column=1, sticky="w", padx=(12,0), pady=(12,12))
 
+        self.keyOneLabel = customtkinter.CTkLabel(self.home, text="First function key:", anchor="w")
+        self.keyTwoLabel = customtkinter.CTkLabel(self.home, text="Second function key:", anchor="w")
+        self.keyThreeLabel = customtkinter.CTkLabel(self.home, text="Third function key:", anchor="w")
+        self.keyFourLabel = customtkinter.CTkLabel(self.home, text="Fourth function key:", anchor="w")
 
-        self.entry = customtkinter.CTkEntry(master=self.frame_right,
-                                            placeholder_text="Search Preset")
-        self.entry.grid(row=0, column=0, sticky="we", padx=(12, 0), pady=12)
-        self.entry.bind("<Return>", self.search_preset)
+        self.keyOneLabel.grid(row=1, column=0, sticky="w", padx=(10, 10), pady=(0, 0))
+        self.keyTwoLabel.grid(row=2, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
+        self.keyThreeLabel.grid(row=3, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
+        self.keyFourLabel.grid(row=4, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
 
-        self.button_5 = customtkinter.CTkButton(master=self.frame_right,
-                                                text="Search",
-                                                width=90,
-                                                command=self.search_preset)
-        self.button_5.grid(row=0, column=2, sticky="w", padx=(12, 0), pady=12)
+        self.keyOneOptionMenu = customtkinter.CTkOptionMenu(self.home, values=App.MACRO_LIST, command=self.update_key1)
+        self.keyTwoOptionMenu = customtkinter.CTkOptionMenu(self.home, values=App.MACRO_LIST, command=self.update_key2)
+        self.keyThreeOptionMenu = customtkinter.CTkOptionMenu(self.home, values=App.MACRO_LIST, command=self.update_key3)
+        self.keyFourOptionMenu = customtkinter.CTkOptionMenu(self.home, values=App.MACRO_LIST, command=self.update_key4)
 
-        self.key1_label = customtkinter.CTkLabel(self.frame_right, text="First function key:", anchor="w")
-        self.key2_label = customtkinter.CTkLabel(self.frame_right, text="Second function key:", anchor="w")
-        self.key3_label = customtkinter.CTkLabel(self.frame_right, text="Third function key:", anchor="w")
-        self.key4_label = customtkinter.CTkLabel(self.frame_right, text="Fourth function key:", anchor="w")
-
-        self.key1_label.grid(row=1, column=0, sticky="w", padx=(10, 10), pady=(0, 0))
-        self.key2_label.grid(row=2, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
-        self.key3_label.grid(row=3, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
-        self.key4_label.grid(row=4, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
-
-        self.key1_option_menu = customtkinter.CTkOptionMenu(self.frame_right, values=App.MACRO_LIST, command=self.update_key1)
-        self.key2_option_menu = customtkinter.CTkOptionMenu(self.frame_right, values=App.MACRO_LIST, command=self.update_key2)
-        self.key3_option_menu = customtkinter.CTkOptionMenu(self.frame_right, values=App.MACRO_LIST, command=self.update_key3)
-        self.key4_option_menu = customtkinter.CTkOptionMenu(self.frame_right, values=App.MACRO_LIST, command=self.update_key4)
-
-        self.key1_option_menu.grid(row=1, column=1, padx=(10,10), pady=(10, 0))
-        self.key2_option_menu.grid(row=2, column=1, padx=(10,10), pady=(10, 0))
-        self.key3_option_menu.grid(row=3, column=1, padx=(10,10), pady=(10, 0))
-        self.key4_option_menu.grid(row=4, column=1, padx=(10,10), pady=(10, 0))
-
+        self.keyOneOptionMenu.grid(row=1, column=1, padx=(10,10), pady=(10, 0))
+        self.keyTwoOptionMenu.grid(row=2, column=1, padx=(10,10), pady=(10, 0))
+        self.keyThreeOptionMenu.grid(row=3, column=1, padx=(10,10), pady=(10, 0))
+        self.keyFourOptionMenu.grid(row=4, column=1, padx=(10,10), pady=(10, 0))
 
         # Set default values
-        self.appearance_mode_optionemenu.set("System")
+        self.appearanceModeMenu.set("System")
+        self.keyOneOptionMenu.set('--No macro selected--')
+        self.keyTwoOptionMenu.set('--No macro selected--')
+        self.keyThreeOptionMenu.set('--No macro selected--')
+        self.keyFourOptionMenu.set('--No macro selected--')
+
 
     def search_preset(self, event=None):
-        print(self.entry.get())
+        print(self.searchBar.get())
 
     def run_ahk(self):
         self.create_and_run_ahk_script(App.KEY1, App.KEY2, App.KEY3, App.KEY4)
