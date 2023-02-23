@@ -1,7 +1,50 @@
-import customtkinter, os
+import customtkinter, os, uuid
 
 customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
+
+class CustomMacroPreset:
+    def __init__(self, id: str, name: str, macroType: str):
+        self.id = id
+        self.name = name
+        self.macroType = macroType
+
+    # For testing/debug purposes, print(CustomMacroPreset)
+    def __repr__(self):
+        return "\n{\nid: % s\nname: % s\nmacro Type: % s\n}\n" % (self.id, self.name, self.macroType)
+
+
+class CreateMacroWindow(customtkinter.CTkToplevel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.title("Create New Macro Preset")
+        self.geometry("400x300")
+
+        macroType: str = ''
+
+        # self.presetLabel = customtkinter.CTkLabel(self, text="First function key:", anchor="w")
+        # self.presetLabel.pack(padx=20, pady=20)
+        self.presetOptionMenu = customtkinter.CTkOptionMenu(master=self, values=App.MACRO_LIST, command=self.save_dropdown_option, dynamic_resizing=False, width=200)
+        self.presetOptionMenu.pack(padx=20, pady=20)
+        self.presetOptionMenu.set('--No macro selected--')
+        self.presetNameEntry = customtkinter.CTkEntry(master=self, placeholder_text="Preset Name", width=150)
+        self.presetNameEntry.pack(padx=20, pady=20)
+        self.savePresetButton = customtkinter.CTkButton(master=self, text="Save", command=self.create_preset)
+        self.savePresetButton.pack(padx=20, pady=20)
+
+    def create_preset(self):
+        if (self.presetNameEntry.get() == '') or (CreateMacroWindow.macroType == ''):
+            return
+
+        newPreset = CustomMacroPreset(uuid.uuid4(), self.presetNameEntry.get(), CreateMacroWindow.macroType)
+        App.PRESETS.append(newPreset)
+
+        # Close popup
+        self.destroy()
+
+    def save_dropdown_option(self, selectedMacro: str):
+        CreateMacroWindow.macroType = selectedMacro
+
 
 
 class App(customtkinter.CTk):
@@ -16,6 +59,7 @@ class App(customtkinter.CTk):
         "Open File Explorer at a Favorite Folder", "Volume Up", "Volume Down", "Volume Mute", "Play/Pause Media","Empty Recycle Bin", 
         "Insert preset message",
         ]
+    PRESETS: list[CustomMacroPreset] = []
     KEY1: str = ''
     KEY2: str = ''
     KEY3: str = ''
@@ -49,6 +93,9 @@ class App(customtkinter.CTk):
 
         self.stopAhkButton = customtkinter.CTkButton(master=self.sidebar,text="Stop AHK", command=self.stop_ahk)
         self.stopAhkButton.grid(pady=(20, 0), padx=(20, 20), row=1, column=0)
+
+        self.createNewMacroButton = customtkinter.CTkButton(master=self.sidebar, text="Create New Macro", command=self.open_new_macro_window)
+        self.createNewMacroButton.grid(pady=(20, 0), padx=(20, 20), row=2, column=0)
 
         self.appearanceModeLabel = customtkinter.CTkLabel(self.sidebar, text="Appearance Mode:", anchor="w")
         self.appearanceModeLabel.grid(row=5, column=0, padx=(20, 20), pady=(20, 0))
@@ -85,15 +132,24 @@ class App(customtkinter.CTk):
         self.keyFourOptionMenu.grid(row=4, column=1, padx=(10,10), pady=(10, 0))
 
         # Set default values
+        self.createNewMacroWindow = None
         self.appearanceModeMenu.set("System")
         self.keyOneOptionMenu.set('--No macro selected--')
         self.keyTwoOptionMenu.set('--No macro selected--')
         self.keyThreeOptionMenu.set('--No macro selected--')
         self.keyFourOptionMenu.set('--No macro selected--')
 
-
     def search_preset(self, event=None):
-        print(self.searchBar.get())
+        # print(self.searchBar.get())
+        print(App.PRESETS)
+    
+    def open_new_macro_window(self):
+        # if self.createNewMacroWindow is None or not self.createNewMacroWindow.winfo_exists():
+        #     self.createNewMacroWindow = CreateMacroWindow(self)
+        # # If window is already open
+        # else:
+        #     self.createNewMacroWindow.focus()
+        self.createNewMacroWindow = CreateMacroWindow(self)
 
     def run_ahk(self):
         self.create_and_run_ahk_script(App.KEY1, App.KEY2, App.KEY3, App.KEY4)
