@@ -4,14 +4,16 @@ customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
 
 class CustomMacroPreset:
-    def __init__(self, id: str, name: str, macroType: str):
+    def __init__(self, id: str, name: str, macroType: str, userInput1: str = None, userInput2: str = None):
         self.id = id
         self.name = name
         self.macroType = macroType
+        self.userInput1 = userInput1 if userInput1 is not None else None
+        self.userInput2 = userInput2 if userInput2 is not None else None
 
     # For testing/debug purposes, print(CustomMacroPreset)
     def __repr__(self):
-        return "\n{\nid: % s\nname: % s\nmacro Type: % s\n}\n" % (self.id, self.name, self.macroType)
+        return "\n{\nid: % s\nname: % s\nmacro Type: % s\nuserInput1: % s\nuserInput2: % s\n}\n" % (self.id, self.name, self.macroType, self.userInput1, self.userInput2)
 
 
 class CreateMacroWindow(customtkinter.CTkToplevel):
@@ -33,10 +35,21 @@ class CreateMacroWindow(customtkinter.CTkToplevel):
         self.savePresetButton.pack(padx=20, pady=20)
 
     def create_preset(self):
-        if (self.presetNameEntry.get() == '') or (CreateMacroWindow.macroType == ''):
-            return
+        macroType: str = CreateMacroWindow.macroType
+        customName: str = self.presetNameEntry.get()
 
-        newPreset = CustomMacroPreset(uuid.uuid4(), self.presetNameEntry.get(), CreateMacroWindow.macroType)
+        if (customName == '') or (macroType == ''):
+            return
+        
+        # If macro requires custom input, open Input dialog
+        if (macroType in App.MACRO_LIST_THAT_REQUIRE_CUSTOM_INPUT):
+            index = App.MACRO_LIST_THAT_REQUIRE_CUSTOM_INPUT.index(macroType)
+            message = App.CUSTOM_INPUT_PLACEHOLDER_MESSAGES[index]
+            customInputDialog = customtkinter.CTkInputDialog(text=message, title=(macroType + "- " + customName))
+            newPreset = CustomMacroPreset(uuid.uuid4(), self.presetNameEntry.get(), CreateMacroWindow.macroType, customInputDialog.get_input())
+        else:
+            newPreset = CustomMacroPreset(uuid.uuid4(), self.presetNameEntry.get(), CreateMacroWindow.macroType)
+        
         App.PRESETS.append(newPreset)
 
         # Close popup
@@ -59,6 +72,14 @@ class App(customtkinter.CTk):
         "Open File Explorer at a Favorite Folder", "Volume Up", "Volume Down", "Volume Mute", "Play/Pause Media","Empty Recycle Bin", 
         "Insert preset message",
         ]
+    MACRO_LIST_THAT_REQUIRE_CUSTOM_INPUT: list[str] = [
+        "Open Website", "Open Application", "Run command in current folder", "Open Command prompt at a favorite folder",
+        "Open File Explorer at a Favorite Folder", "Insert preset message"
+    ]
+    CUSTOM_INPUT_PLACEHOLDER_MESSAGES: list[str] = [
+        "Type in a Website URL:", "Type in a Application Process (chrome.exe, notepad, etc.):", "Type in a Command (git status, cd Desktop, etc.):",
+        "Type in a Folder Path Location:", "Type in a Folder Path Location:", "Type in a Template Message:"
+    ]
     PRESETS: list[CustomMacroPreset] = []
     KEY1: str = ''
     KEY2: str = ''
@@ -144,11 +165,6 @@ class App(customtkinter.CTk):
         print(App.PRESETS)
     
     def open_new_macro_window(self):
-        # if self.createNewMacroWindow is None or not self.createNewMacroWindow.winfo_exists():
-        #     self.createNewMacroWindow = CreateMacroWindow(self)
-        # # If window is already open
-        # else:
-        #     self.createNewMacroWindow.focus()
         self.createNewMacroWindow = CreateMacroWindow(self)
 
     def run_ahk(self):
@@ -238,10 +254,29 @@ class App(customtkinter.CTk):
     def change_appearance_mode(self, new_appearance_mode: str):
         customtkinter.set_appearance_mode(new_appearance_mode)
 
+    def save_custom_presets(self, fileName: str):
+        f = open(fileName, "w")
+
+        for macro in App.PRESETS:
+            f.write("{\nid: " + str(macro.id) + "\nname: " + macro.name + "\nmacroType: " + macro.macroType)
+            if macro.userInput1 is not None:
+                f.write("\nuserInput1: " + macro.userInput1)
+                if macro.userInput2 is not None:
+                    f.write("\nuserInput2: " + macro.userInput2)
+            
+            f.write("\n},\n")
+        
+        f.close()
+
+    def load_custom_presets(self):
+        print('load')
+
     def on_closing(self, event=0):
+        self.save_custom_presets("program-files/your-macros.txt")
         self.destroy()
 
     def start(self):
+        self.load_custom_presets()
         self.mainloop()
 
 

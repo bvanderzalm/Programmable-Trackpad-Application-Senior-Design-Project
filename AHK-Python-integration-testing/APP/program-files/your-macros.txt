@@ -1,0 +1,33 @@
+{
+id: 751cf836-e72b-4c4d-9c3e-c9d822af4c06
+name: Open Youtube
+macroType: Open Website
+userInput1: youtube.com
+},
+{
+id: 5e903662-a6f0-4a55-974a-3a11175838a8
+name: Open Chrome
+macroType: Open Application
+userInput1: chrome.exe
+},
+{
+id: 11767f63-01d4-49b2-a5f8-f5ee9c2e8200
+name: Look up text
+macroType: Google Search Selected Text
+},
+{
+id: 71db56ae-cba6-4e3e-8cbb-9b4e6d57b842
+name: Get Color at mouse cursor
+macroType: Copy HEX color code to clipboard
+},
+{
+id: fca4802b-b85c-4dba-95b7-fd78b57f527f
+name: Type Standard Support message
+macroType: Insert preset message
+userInput1: Hello! Thank you for contacting our Support, what can I help you with today?
+},
+{
+id: a78c1e05-b242-483c-9422-daf9f4fc50e5
+name: Mute sound
+macroType: Volume Mute
+},
