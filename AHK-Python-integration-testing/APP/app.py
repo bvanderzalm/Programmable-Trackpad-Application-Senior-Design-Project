@@ -94,6 +94,7 @@ class App(customtkinter.CTk):
     KEY2_id: str = ''
     KEY3_id: str = ''
     KEY4_id: str = ''
+    debug_mode: str
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -127,10 +128,15 @@ class App(customtkinter.CTk):
         self.createNewMacroButton = customtkinter.CTkButton(master=self.sidebar, text="Create New Macro", command=self.open_new_macro_window)
         self.createNewMacroButton.grid(pady=(20, 0), padx=(20, 20), row=2, column=0)
 
+        self.debugModeLabel = customtkinter.CTkLabel(self.sidebar, text="Debug Mode:", anchor="w")
+        self.debugModeLabel.grid(row=4, column=0, padx=(20,20), pady=(20,0))
+        self.debugModeMenu = customtkinter.CTkOptionMenu(self.sidebar, values=["Remap to F1-F4", "Remap to F13-F16"], command=self.change_debug_mode)
+        self.debugModeMenu.grid(row=5, column=0, padx=(20,20), pady=(10, 20))
+
         self.appearanceModeLabel = customtkinter.CTkLabel(self.sidebar, text="Appearance Mode:", anchor="w")
-        self.appearanceModeLabel.grid(row=5, column=0, padx=(20, 20), pady=(20, 0))
+        self.appearanceModeLabel.grid(row=6, column=0, padx=(20, 20), pady=(20, 0))
         self.appearanceModeMenu = customtkinter.CTkOptionMenu(self.sidebar, values=["Light", "Dark", "System"], command=self.change_appearance_mode)
-        self.appearanceModeMenu.grid(row=6, column=0, padx=(20, 20), pady=(10, 20))
+        self.appearanceModeMenu.grid(row=7, column=0, padx=(20, 20), pady=(10, 20))
 
         # -- Setup Home component --
         
@@ -163,6 +169,7 @@ class App(customtkinter.CTk):
 
         # Set default values
         self.createNewMacroWindow = None
+        self.debugModeMenu.set("Remap to F1-F4")
         self.appearanceModeMenu.set("System")
         self.keyOneOptionMenu.set('--No macro selected--')
         self.keyTwoOptionMenu.set('--No macro selected--')
@@ -182,12 +189,15 @@ class App(customtkinter.CTk):
         self.createNewMacroWindow = CreateMacroWindow(self)
 
     def run_ahk(self):
-        self.create_and_run_ahk_script(App.KEY1, App.KEY2, App.KEY3, App.KEY4)
+        self.create_and_run_ahk_script()
 
-    def create_and_run_ahk_script(self, key1: str, key2: str, key3: str, key4: str):
+    def create_and_run_ahk_script(self):
         f = open("program-files/macro-pad.ahk", "w")            
         ids = [App.KEY1_id, App.KEY2_id, App.KEY3_id, App.KEY4_id]
-        counter = 1
+        if (self.debug_mode == "Remap to F1-F4"):
+            counter = 1
+        else:
+            counter = 13
 
         # Write to newly created text file with .ahk extension
         for id in ids:
@@ -295,8 +305,11 @@ class App(customtkinter.CTk):
 
     def change_appearance_mode(self, new_appearance_mode: str):
         customtkinter.set_appearance_mode(new_appearance_mode)
+    
+    def change_debug_mode(self, new_debug_mode: str):
+        self.debug_mode = new_debug_mode
 
-    def save_custom_presets(self, fileName):
+    def save_custom_presets(self, fileName: str):
         f = open(fileName, "w")
 
         for macro in App.PRESETS:
