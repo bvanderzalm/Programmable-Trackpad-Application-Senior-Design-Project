@@ -1,33 +1,27 @@
 {
-id: 751cf836-e72b-4c4d-9c3e-c9d822af4c06
-name: Open Youtube
-macroType: Open Website
-userInput1: youtube.com
+00e387b2-e043-4ab9-9750-5224fac800c2
+look up
+Google Search Selected Text
 },
 {
-id: 5e903662-a6f0-4a55-974a-3a11175838a8
-name: Open Chrome
-macroType: Open Application
-userInput1: chrome.exe
+0818e918-35bd-45ba-b6d4-fc219c90bc27
+open youtube
+Open Website
+youtube.com
 },
 {
-id: 11767f63-01d4-49b2-a5f8-f5ee9c2e8200
-name: Look up text
-macroType: Google Search Selected Text
+1a702e96-00ab-42c5-9e92-7cc3559716eb
+open new Application
+Open Application
+Notepad
 },
 {
-id: 71db56ae-cba6-4e3e-8cbb-9b4e6d57b842
-name: Get Color at mouse cursor
-macroType: Copy HEX color code to clipboard
+0e6fc5ef-b213-482e-ab20-0e63cc1b8194
+Get Color at mouse pointer
+Copy HEX color code to clipboard
 },
 {
-id: fca4802b-b85c-4dba-95b7-fd78b57f527f
-name: Type Standard Support message
-macroType: Insert preset message
-userInput1: Hello! Thank you for contacting our Support, what can I help you with today?
-},
-{
-id: a78c1e05-b242-483c-9422-daf9f4fc50e5
-name: Mute sound
-macroType: Volume Mute
+1c0cdab3-ccf5-4b4f-8753-1728fa313e6c
+Go up a folder in File Explorer
+Move up a Folder
 },

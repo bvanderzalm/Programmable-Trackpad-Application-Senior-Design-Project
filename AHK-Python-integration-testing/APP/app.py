@@ -15,7 +15,6 @@ class CustomMacroPreset:
     def __repr__(self):
         return "\n{\nid: % s\nname: % s\nmacro Type: % s\nuserInput1: % s\nuserInput2: % s\n}\n" % (self.id, self.name, self.macroType, self.userInput1, self.userInput2)
 
-
 class CreateMacroWindow(customtkinter.CTkToplevel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -45,10 +44,10 @@ class CreateMacroWindow(customtkinter.CTkToplevel):
         if (macroType in App.MACRO_LIST_THAT_REQUIRE_CUSTOM_INPUT):
             index = App.MACRO_LIST_THAT_REQUIRE_CUSTOM_INPUT.index(macroType)
             message = App.CUSTOM_INPUT_PLACEHOLDER_MESSAGES[index]
-            customInputDialog = customtkinter.CTkInputDialog(text=message, title=(macroType + "- " + customName))
-            newPreset = CustomMacroPreset(uuid.uuid4(), self.presetNameEntry.get(), CreateMacroWindow.macroType, customInputDialog.get_input())
+            customInputDialog = customtkinter.CTkInputDialog(text=message, title=(macroType + " - " + customName))
+            newPreset = CustomMacroPreset(str(uuid.uuid4()), self.presetNameEntry.get(), CreateMacroWindow.macroType, customInputDialog.get_input())
         else:
-            newPreset = CustomMacroPreset(uuid.uuid4(), self.presetNameEntry.get(), CreateMacroWindow.macroType)
+            newPreset = CustomMacroPreset(str(uuid.uuid4()), self.presetNameEntry.get(), CreateMacroWindow.macroType)
         
         App.PRESETS.append(newPreset)
 
@@ -254,29 +253,57 @@ class App(customtkinter.CTk):
     def change_appearance_mode(self, new_appearance_mode: str):
         customtkinter.set_appearance_mode(new_appearance_mode)
 
-    def save_custom_presets(self, fileName: str):
+    def save_custom_presets(self, fileName):
         f = open(fileName, "w")
 
         for macro in App.PRESETS:
-            f.write("{\nid: " + str(macro.id) + "\nname: " + macro.name + "\nmacroType: " + macro.macroType)
+            f.write("{\n" + str(macro.id) + "\n" + macro.name + "\n" + macro.macroType)
             if macro.userInput1 is not None:
-                f.write("\nuserInput1: " + macro.userInput1)
+                f.write("\n" + macro.userInput1)
                 if macro.userInput2 is not None:
-                    f.write("\nuserInput2: " + macro.userInput2)
+                    f.write("\n" + macro.userInput2)
             
             f.write("\n},\n")
         
         f.close()
 
-    def load_custom_presets(self):
-        print('load')
+    def load_custom_presets(self, fileName: str):
+        lines: list[str] = []
+
+        with open(fileName, 'r') as f:
+            for line in f:
+                lines.append(str(line).replace("\n", ""))
+
+        counter = 0
+        for line in lines:
+            if (line == "{"):
+                tempId = lines[counter + 1]
+                tempName = lines[counter + 2]
+                tempType = lines[counter + 3]
+
+                if (lines[counter + 4] == '},'):
+                    tempMacro = CustomMacroPreset(tempId, tempName, tempType)
+                    App.PRESETS.append(tempMacro)
+                    counter = counter + 1
+                    continue
+                
+                if (lines[counter + 5] == '},'):
+                    customInput1 = lines[counter + 4]
+                    tempMacro = CustomMacroPreset(tempId, tempName, tempType, customInput1)
+                    App.PRESETS.append(tempMacro)
+                else:
+                    customInput1 = lines[counter + 4]
+                    customInput2 = lines[counter + 5]
+                    tempMacro = CustomMacroPreset(tempId, tempName, tempType, customInput1, customInput2)
+                    App.PRESETS.append(tempMacro)
+            counter = counter + 1
 
     def on_closing(self, event=0):
         self.save_custom_presets("program-files/your-macros.txt")
         self.destroy()
 
     def start(self):
-        self.load_custom_presets()
+        self.load_custom_presets("program-files/your-macros.txt")
         self.mainloop()
 
 
