@@ -1,4 +1,5 @@
 import customtkinter, os, uuid
+from os.path import exists
 
 customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
@@ -45,9 +46,13 @@ class CreateMacroWindow(customtkinter.CTkToplevel):
             index = App.MACRO_LIST_THAT_REQUIRE_CUSTOM_INPUT.index(macroType)
             message = App.CUSTOM_INPUT_PLACEHOLDER_MESSAGES[index]
             customInputDialog = customtkinter.CTkInputDialog(text=message, title=(macroType + " - " + customName))
-            newPreset = CustomMacroPreset(str(uuid.uuid4()), self.presetNameEntry.get(), CreateMacroWindow.macroType, customInputDialog.get_input())
+            customInput = customInputDialog.get_input()
+            if (customInput != ''):
+                newPreset = CustomMacroPreset(str(uuid.uuid4()), customName, CreateMacroWindow.macroType, customInput)
+                App.PRESET_NAMES.append(customName)
         else:
-            newPreset = CustomMacroPreset(str(uuid.uuid4()), self.presetNameEntry.get(), CreateMacroWindow.macroType)
+            newPreset = CustomMacroPreset(str(uuid.uuid4()), customName, CreateMacroWindow.macroType)
+            App.PRESET_NAMES.append(customName)
         
         App.PRESETS.append(newPreset)
 
@@ -72,7 +77,7 @@ class App(customtkinter.CTk):
         "Insert preset message",
         ]
     MACRO_LIST_THAT_REQUIRE_CUSTOM_INPUT: list[str] = [
-        "Open Website", "Open Application", "Run command in current folder", "Open Command prompt at a favorite folder",
+        "Open Website", "Open Application", "Run command in current folder", "Open Command Prompt at a Favorite Folder",
         "Open File Explorer at a Favorite Folder", "Insert preset message"
     ]
     CUSTOM_INPUT_PLACEHOLDER_MESSAGES: list[str] = [
@@ -80,10 +85,15 @@ class App(customtkinter.CTk):
         "Type in a Folder Path Location:", "Type in a Folder Path Location:", "Type in a Template Message:"
     ]
     PRESETS: list[CustomMacroPreset] = []
+    PRESET_NAMES: list[str] = ['--No macro selected--']
     KEY1: str = ''
     KEY2: str = ''
     KEY3: str = ''
     KEY4: str = ''
+    KEY1_id: str = ''
+    KEY2_id: str = ''
+    KEY3_id: str = ''
+    KEY4_id: str = ''
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -128,7 +138,7 @@ class App(customtkinter.CTk):
         self.searchBar.grid(row=0, column=0, padx=(12,0), pady=(12,12))
         self.searchBar.bind("<Return>", self.search_preset)
 
-        self.searchButton = customtkinter.CTkButton(master=self.home, text="Search", width=90, command=self.search_preset)
+        self.searchButton = customtkinter.CTkButton(master=self.home, text="Search/Refresh", width=90, command=self.search_preset)
         self.searchButton.grid(row=0, column=1, padx=(12,0), pady=(12,12))
 
         self.keyOneLabel = customtkinter.CTkLabel(master=self.home, text="First function key:", anchor="w")
@@ -141,10 +151,10 @@ class App(customtkinter.CTk):
         self.keyThreeLabel.grid(row=3, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
         self.keyFourLabel.grid(row=4, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
 
-        self.keyOneOptionMenu = customtkinter.CTkOptionMenu(master=self.home, values=App.MACRO_LIST, command=self.update_key1, dynamic_resizing=False, width=200)
-        self.keyTwoOptionMenu = customtkinter.CTkOptionMenu(master=self.home, values=App.MACRO_LIST, command=self.update_key2, dynamic_resizing=False, width=200)
-        self.keyThreeOptionMenu = customtkinter.CTkOptionMenu(master=self.home, values=App.MACRO_LIST, command=self.update_key3, dynamic_resizing=False, width=200)
-        self.keyFourOptionMenu = customtkinter.CTkOptionMenu(master=self.home, values=App.MACRO_LIST, command=self.update_key4, dynamic_resizing=False, width=200)
+        self.keyOneOptionMenu = customtkinter.CTkOptionMenu(master=self.home, values=App.PRESET_NAMES, command=self.update_key1, dynamic_resizing=False, width=200)
+        self.keyTwoOptionMenu = customtkinter.CTkOptionMenu(master=self.home, values=App.PRESET_NAMES, command=self.update_key2, dynamic_resizing=False, width=200)
+        self.keyThreeOptionMenu = customtkinter.CTkOptionMenu(master=self.home, values=App.PRESET_NAMES, command=self.update_key3, dynamic_resizing=False, width=200)
+        self.keyFourOptionMenu = customtkinter.CTkOptionMenu(master=self.home, values=App.PRESET_NAMES, command=self.update_key4, dynamic_resizing=False, width=200)
 
         self.keyOneOptionMenu.grid(row=1, column=1, padx=(10,10), pady=(10, 0))
         self.keyTwoOptionMenu.grid(row=2, column=1, padx=(10,10), pady=(10, 0))
@@ -160,8 +170,13 @@ class App(customtkinter.CTk):
         self.keyFourOptionMenu.set('--No macro selected--')
 
     def search_preset(self, event=None):
+        self.keyOneOptionMenu.configure(values=App.PRESET_NAMES)
+        self.keyTwoOptionMenu.configure(values=App.PRESET_NAMES)
+        self.keyThreeOptionMenu.configure(values=App.PRESET_NAMES)
+        self.keyFourOptionMenu.configure(values=App.PRESET_NAMES)
         # print(self.searchBar.get())
-        print(App.PRESETS)
+        # print(App.PRESETS)
+        # print(App.PRESET_NAMES)
     
     def open_new_macro_window(self):
         self.createNewMacroWindow = CreateMacroWindow(self)
@@ -171,21 +186,27 @@ class App(customtkinter.CTk):
 
     def create_and_run_ahk_script(self, key1: str, key2: str, key3: str, key4: str):
         f = open("program-files/macro-pad.ahk", "w")            
-        keys = [key1, key2, key3, key4]
+        ids = [App.KEY1_id, App.KEY2_id, App.KEY3_id, App.KEY4_id]
         counter = 1
 
         # Write to newly created text file with .ahk extension
-        for key in keys:
+        for id in ids:
+            macro = self.get_macro_by_id(id)
+            if (macro is None):
+                counter = counter + 1
+                continue
             functionKey: str = "F" + str(counter)
             # Add AutoHotKey remapping functions to text file
-            match key:
+            match macro.macroType:
                 case "Google Search Selected Text":
                     f.write("{\n" + functionKey + "::\n\tSend, ^c\n\tSleep 50\n\tRun, https://www.google.com/search?q=%clipboard%\n\tReturn\n}\n\n")
                 case "Open Website":
-                    website: str = "https://www.ucf.edu"
+                    # website: str = "https://www.ucf.edu"
+                    website: str = macro.userInput1
                     f.write(functionKey + "::Run, " + website + "\n\n")
                 case "Open Application":
-                    appProcess: str = "Notepad"
+                    # appProcess: str = "Notepad"
+                    appProcess: str = macro.userInput1
                     f.write(functionKey + "::Run " + appProcess + "\n\n")
                 case "Move up a Folder":
                     f.write(functionKey + "::Send !{Up}\n\n")
@@ -194,17 +215,22 @@ class App(customtkinter.CTk):
                 case "Open Command Prompt in current folder":
                     f.write(functionKey + "::\n{\n\tSend, !d\n\tSend,^c\n\tSleep 50\n\tRun cmd, %clipboard%\n\tReturn\n}\n\n")
                 case "Run command in current folder":
-                    command: str = "git status"
+                    # command: str = "git status"
+                    command: str = macro.userInput1
                     f.write(functionKey + "::\n{\n\tSend, !d\n\tSend,^c\n\tSleep 50\n\tRun cmd, %clipboard%\n\tSleep 100\n\tSend, " + command + "\n\tSleep 100\n\tSend, {Enter}\n\tReturn\n}\n\n")
                 case "Open Command Prompt at a Favorite Folder":
-                    folderLocation: str = "C:\\Users\\bvan5\\Desktop\\SeniorDesign"
+                    # folderLocation: str = "C:\\Users\\bvan5\\Desktop\\SeniorDesign"
+                    folderLocation: str = macro.userInput1
                     f.write(functionKey + "::Run cmd, " + folderLocation + "\n\n")
                 case "Run Command at a Favorite Folder":
-                    folderLocation: str = "C:\\Users\\bvan5\\Desktop\\SeniorDesign"
-                    command: str = "git status"
+                    # folderLocation: str = "C:\\Users\\bvan5\\Desktop\\SeniorDesign"
+                    # command: str = "git status"
+                    folderLocation: str = macro.userInput1
+                    command: str = macro.userInput2
                     f.write(functionKey + '::\n{\n\tRun cmd, ' + folderLocation + '\n\tSleep 100\n\tSend, ' + command + '\n\tSleep 100\n\tSend, {Enter}\n\tReturn\n}\n\n')
                 case "Open File Explorer at a Favorite Folder":
-                    folderLocation: str = "C:\\Users\\bvan5\\Desktop\\SeniorDesign"
+                    # folderLocation: str = "C:\\Users\\bvan5\\Desktop\\SeniorDesign"
+                    folderLocation: str = macro.userInput1
                     f.write(functionKey + "::Run " + folderLocation + "\n\n")
                 case "Volume Up":
                     f.write(functionKey + "::Volume_Up\n\n")
@@ -217,7 +243,8 @@ class App(customtkinter.CTk):
                 case "Empty Recycle Bin":
                     f.write(functionKey + "::FileRecycleEmpty\n\n")
                 case "Insert preset message":
-                    message: str = "this will show up whenever the user is typing"
+                    # message: str = "this will show up whenever the user is typing"
+                    message: str = macro.userInput1
                     f.write(functionKey + "::Send " + message + "\n\n")
 
             counter = counter + 1
@@ -234,21 +261,37 @@ class App(customtkinter.CTk):
         os.popen('macro-pad.exe')
         os.chdir('..')
 
+    def get_macro_by_id(self, id: str):
+        for macro in App.PRESETS:
+            if (id == macro.id):
+                return macro
+        
+        return None
 
     def stop_ahk(self):
         os.system("taskkill /im macro-pad.exe")
     
     def update_key1(self, selectedMacro: str):
         App.KEY1 = selectedMacro
+        App.KEY1_id = self.search_for_macro(selectedMacro)
 
     def update_key2(self, selectedMacro: str):
         App.KEY2 = selectedMacro
+        App.KEY2_id = self.search_for_macro(selectedMacro)
 
     def update_key3(self, selectedMacro: str):
         App.KEY3 = selectedMacro
+        App.KEY3_id = self.search_for_macro(selectedMacro)
 
     def update_key4(self, selectedMacro: str):
         App.KEY4 = selectedMacro
+        App.KEY4_id = self.search_for_macro(selectedMacro)
+    
+    def search_for_macro(self, selectedPreset: str):
+        for preset in App.PRESETS:
+            if (selectedPreset == preset.name):
+                return preset.id
+        return ''
 
     def change_appearance_mode(self, new_appearance_mode: str):
         customtkinter.set_appearance_mode(new_appearance_mode)
@@ -268,6 +311,9 @@ class App(customtkinter.CTk):
         f.close()
 
     def load_custom_presets(self, fileName: str):
+        if (exists(fileName) == False):
+            return
+
         lines: list[str] = []
 
         with open(fileName, 'r') as f:
@@ -283,20 +329,28 @@ class App(customtkinter.CTk):
 
                 if (lines[counter + 4] == '},'):
                     tempMacro = CustomMacroPreset(tempId, tempName, tempType)
+                    App.PRESET_NAMES.append(tempName)
                     App.PRESETS.append(tempMacro)
                     counter = counter + 1
                     continue
                 
                 if (lines[counter + 5] == '},'):
-                    customInput1 = lines[counter + 4]
-                    tempMacro = CustomMacroPreset(tempId, tempName, tempType, customInput1)
+                    userInput1 = lines[counter + 4]
+                    tempMacro = CustomMacroPreset(tempId, tempName, tempType, userInput1)
+                    App.PRESET_NAMES.append(tempName)
                     App.PRESETS.append(tempMacro)
                 else:
-                    customInput1 = lines[counter + 4]
-                    customInput2 = lines[counter + 5]
-                    tempMacro = CustomMacroPreset(tempId, tempName, tempType, customInput1, customInput2)
+                    userInput1 = lines[counter + 4]
+                    userInput2 = lines[counter + 5]
+                    tempMacro = CustomMacroPreset(tempId, tempName, tempType, userInput1, userInput2)
+                    App.PRESET_NAMES.append(tempName)
                     App.PRESETS.append(tempMacro)
             counter = counter + 1
+        
+        self.keyOneOptionMenu.configure(values=App.PRESET_NAMES)
+        self.keyTwoOptionMenu.configure(values=App.PRESET_NAMES)
+        self.keyThreeOptionMenu.configure(values=App.PRESET_NAMES)
+        self.keyFourOptionMenu.configure(values=App.PRESET_NAMES)
 
     def on_closing(self, event=0):
         self.save_custom_presets("program-files/your-macros.txt")
