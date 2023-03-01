@@ -94,7 +94,7 @@ class App(customtkinter.CTk):
     KEY2_id: str = ''
     KEY3_id: str = ''
     KEY4_id: str = ''
-    debug_mode: str
+    debug_mode: str = "Remap to F1-F4"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -169,7 +169,7 @@ class App(customtkinter.CTk):
 
         # Set default values
         self.createNewMacroWindow = None
-        self.debugModeMenu.set("Remap to F1-F4")
+        self.debugModeMenu.set(self.debug_mode)
         self.appearanceModeMenu.set("System")
         self.keyOneOptionMenu.set('--No macro selected--')
         self.keyTwoOptionMenu.set('--No macro selected--')
