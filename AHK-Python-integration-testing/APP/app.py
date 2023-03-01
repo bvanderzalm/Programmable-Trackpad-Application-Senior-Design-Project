@@ -26,10 +26,10 @@ class CreateMacroWindow(customtkinter.CTkToplevel):
 
         # self.presetLabel = customtkinter.CTkLabel(self, text="First function key:", anchor="w")
         # self.presetLabel.pack(padx=20, pady=20)
-        self.presetOptionMenu = customtkinter.CTkOptionMenu(master=self, values=App.MACRO_LIST, command=self.save_dropdown_option, dynamic_resizing=False, width=200)
+        self.presetOptionMenu = customtkinter.CTkOptionMenu(master=self, values=App.MACRO_LIST, command=self.save_dropdown_option, dynamic_resizing=False, width=300)
         self.presetOptionMenu.pack(padx=20, pady=20)
         self.presetOptionMenu.set('--No macro selected--')
-        self.presetNameEntry = customtkinter.CTkEntry(master=self, placeholder_text="Preset Name", width=150)
+        self.presetNameEntry = customtkinter.CTkEntry(master=self, placeholder_text="Preset Name", width=300)
         self.presetNameEntry.pack(padx=20, pady=20)
         self.savePresetButton = customtkinter.CTkButton(master=self, text="Save", command=self.create_preset)
         self.savePresetButton.pack(padx=20, pady=20)
