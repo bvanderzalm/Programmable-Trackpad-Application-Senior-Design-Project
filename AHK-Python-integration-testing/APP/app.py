@@ -1,7 +1,6 @@
 import customtkinter, os, uuid
 from os.path import exists
 
-customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
 
 class CustomMacroPreset:
@@ -62,11 +61,9 @@ class CreateMacroWindow(customtkinter.CTkToplevel):
     def save_dropdown_option(self, selectedMacro: str):
         CreateMacroWindow.macroType = selectedMacro
 
-
-
 class App(customtkinter.CTk):
 
-    APP_NAME = "Programmable MacroPad"
+    APP_NAME = "Programmable Trackpad"
     WIDTH = 800
     HEIGHT = 500
     MACRO_LIST: list[str] = [
@@ -86,15 +83,12 @@ class App(customtkinter.CTk):
     ]
     PRESETS: list[CustomMacroPreset] = []
     PRESET_NAMES: list[str] = ['--No macro selected--']
-    KEY1: str = ''
-    KEY2: str = ''
-    KEY3: str = ''
-    KEY4: str = ''
     KEY1_id: str = ''
     KEY2_id: str = ''
     KEY3_id: str = ''
     KEY4_id: str = ''
     debug_mode: str = "Remap to F1-F4"
+    appearance_mode: str = "System"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -170,7 +164,7 @@ class App(customtkinter.CTk):
         # Set default values
         self.createNewMacroWindow = None
         self.debugModeMenu.set(self.debug_mode)
-        self.appearanceModeMenu.set("System")
+        self.appearanceModeMenu.set(self.appearance_mode)
         self.keyOneOptionMenu.set('--No macro selected--')
         self.keyTwoOptionMenu.set('--No macro selected--')
         self.keyThreeOptionMenu.set('--No macro selected--')
@@ -304,6 +298,7 @@ class App(customtkinter.CTk):
         return ''
 
     def change_appearance_mode(self, new_appearance_mode: str):
+        self.appearance_mode = new_appearance_mode
         customtkinter.set_appearance_mode(new_appearance_mode)
     
     def change_debug_mode(self, new_debug_mode: str):
@@ -311,6 +306,8 @@ class App(customtkinter.CTk):
 
     def save_custom_presets(self, fileName: str):
         f = open(fileName, "w")
+
+        f.write(self.appearance_mode + "\n")
 
         for macro in App.PRESETS:
             f.write("{\n" + str(macro.id) + "\n" + macro.name + "\n" + macro.macroType)
@@ -324,17 +321,24 @@ class App(customtkinter.CTk):
         f.close()
 
     def load_custom_presets(self, fileName: str):
+        # Avoid reading a file that doesn't exist
         if (exists(fileName) == False):
             return
-
+        
+        # Read text file
         lines: list[str] = []
-
         with open(fileName, 'r') as f:
             for line in f:
                 lines.append(str(line).replace("\n", ""))
-
+        
+        # Interpret text file and store macros into Object array 
         counter = 0
         for line in lines:
+            # Set appearance mode based on users' last setting (store on 1st line)
+            if (counter == 0 and (line == 'Dark' or line == 'Light' or line == 'System')):
+                self.change_appearance_mode(line)
+                self.appearanceModeMenu.set(self.appearance_mode)
+
             if (line == "{"):
                 tempId = lines[counter + 1]
                 tempName = lines[counter + 2]
