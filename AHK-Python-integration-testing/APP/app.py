@@ -30,8 +30,12 @@ class CreateMacroWindow(customtkinter.CTkToplevel):
         self.presetOptionMenu.set('--No Macro Selected--')
         self.presetNameEntry = customtkinter.CTkEntry(master=self, placeholder_text="Preset Name", width=300)
         self.presetNameEntry.pack(padx=20, pady=20)
+        self.presetNameEntry.bind("<Return>", self.keybind_create_preset)
         self.savePresetButton = customtkinter.CTkButton(master=self, text="Save", command=self.create_preset)
         self.savePresetButton.pack(padx=20, pady=20)
+    
+    def keybind_create_preset(self, text):
+        self.create_preset()
 
     def create_preset(self):
         macroType: str = CreateMacroWindow.macroType
@@ -46,17 +50,18 @@ class CreateMacroWindow(customtkinter.CTkToplevel):
             message = App.CUSTOM_INPUT_PLACEHOLDER_MESSAGES[index]
             customInputDialog = customtkinter.CTkInputDialog(text=message, title=(macroType + " - " + customName))
             customInput = customInputDialog.get_input()
-            if (customInput != ''):
+            if (customInput != None and customInput != ''):
                 newPreset = CustomMacroPreset(str(uuid.uuid4()), customName, CreateMacroWindow.macroType, customInput)
                 App.PRESET_NAMES.append(customName)
+                App.PRESETS.append(newPreset)
         else:
             newPreset = CustomMacroPreset(str(uuid.uuid4()), customName, CreateMacroWindow.macroType)
             App.PRESET_NAMES.append(customName)
+            App.PRESETS.append(newPreset)
         
-        App.PRESETS.append(newPreset)
-
         # Close popup
         self.destroy()
+
     def save_dropdown_option(self, selectedMacro: str):
         CreateMacroWindow.macroType = selectedMacro
 
@@ -74,9 +79,13 @@ class CreateRotaryEncoderMacroWindow(customtkinter.CTkToplevel):
         self.presetOptionMenu.pack(padx=20, pady=20)
         self.presetOptionMenu.set('--No Encoder Macro Selected--')
         self.presetNameEntry = customtkinter.CTkEntry(master=self, placeholder_text="Encoder Preset Name", width=300)
+        self.presetNameEntry.bind("<Return>", self.keybind_create_preset)
         self.presetNameEntry.pack(padx=20, pady=20)
         self.savePresetButton = customtkinter.CTkButton(master=self, text="Save", command=self.create_preset)
         self.savePresetButton.pack(padx=20, pady=20)
+
+    def keybind_create_preset(self, text):
+        self.create_preset()
 
     def create_preset(self):
         macroType: str = CreateRotaryEncoderMacroWindow.macroType
