@@ -376,10 +376,10 @@ class App(customtkinter.CTk):
         App.ENCODER1_id = self.search_for_encoder_macro(selectedMacro)
 
     def update_enc_key2(self, selectedMacro: str):
-        App.ENCODER1_id = self.search_for_encoder_macro(selectedMacro)
+        App.ENCODER2_id = self.search_for_encoder_macro(selectedMacro)
 
     def update_enc_key3(self, selectedMacro: str):
-        App.ENCODER1_id = self.search_for_encoder_macro(selectedMacro)
+        App.ENCODER3_id = self.search_for_encoder_macro(selectedMacro)
 
     def search_for_encoder_macro(self, selectedPreset: str):
         for preset in App.ENCODER_PRESETS:
