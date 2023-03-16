@@ -136,7 +136,7 @@ class App(customtkinter.CTk):
 
         # -- Setup main frame --
         self.title(App.APP_NAME)
-        self.geometry("800x500")
+        self.geometry("800x550")
         self.minsize(App.WIDTH, App.HEIGHT)
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.bind("<Command-w>", self.on_closing)
@@ -185,25 +185,49 @@ class App(customtkinter.CTk):
         self.searchButton = customtkinter.CTkButton(master=self.home, text="Search/Refresh", width=90, command=self.search_preset)
         self.searchButton.grid(row=0, column=1, padx=(12,0), pady=(12,12))
 
+        # Button Keys
+        self.buttonLabel = customtkinter.CTkLabel(master=self.home, text="-- BUTTONS --", anchor="w")
+        self.buttonLabel.grid(row=1, column=0, sticky="w", padx=(200, 10), pady=(30,20))
+
         self.keyOneLabel = customtkinter.CTkLabel(master=self.home, text="First function key:", anchor="w")
         self.keyTwoLabel = customtkinter.CTkLabel(master=self.home, text="Second function key:", anchor="w")
         self.keyThreeLabel = customtkinter.CTkLabel(master=self.home, text="Third function key:", anchor="w")
         self.keyFourLabel = customtkinter.CTkLabel(master=self.home, text="Fourth function key:", anchor="w")
 
-        self.keyOneLabel.grid(row=1, column=0, sticky="w", padx=(10, 10), pady=(0, 0))
-        self.keyTwoLabel.grid(row=2, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
-        self.keyThreeLabel.grid(row=3, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
-        self.keyFourLabel.grid(row=4, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
+        self.keyOneLabel.grid(row=2, column=0, sticky="w", padx=(10, 10), pady=(0, 0))
+        self.keyTwoLabel.grid(row=3, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
+        self.keyThreeLabel.grid(row=4, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
+        self.keyFourLabel.grid(row=5, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
 
         self.keyOneOptionMenu = customtkinter.CTkOptionMenu(master=self.home, values=App.PRESET_NAMES, command=self.update_key1, dynamic_resizing=False, width=200)
         self.keyTwoOptionMenu = customtkinter.CTkOptionMenu(master=self.home, values=App.PRESET_NAMES, command=self.update_key2, dynamic_resizing=False, width=200)
         self.keyThreeOptionMenu = customtkinter.CTkOptionMenu(master=self.home, values=App.PRESET_NAMES, command=self.update_key3, dynamic_resizing=False, width=200)
         self.keyFourOptionMenu = customtkinter.CTkOptionMenu(master=self.home, values=App.PRESET_NAMES, command=self.update_key4, dynamic_resizing=False, width=200)
 
-        self.keyOneOptionMenu.grid(row=1, column=1, padx=(10,10), pady=(10, 0))
-        self.keyTwoOptionMenu.grid(row=2, column=1, padx=(10,10), pady=(10, 0))
-        self.keyThreeOptionMenu.grid(row=3, column=1, padx=(10,10), pady=(10, 0))
-        self.keyFourOptionMenu.grid(row=4, column=1, padx=(10,10), pady=(10, 0))
+        self.keyOneOptionMenu.grid(row=2, column=1, padx=(10,10), pady=(10, 0))
+        self.keyTwoOptionMenu.grid(row=3, column=1, padx=(10,10), pady=(10, 0))
+        self.keyThreeOptionMenu.grid(row=4, column=1, padx=(10,10), pady=(10, 0))
+        self.keyFourOptionMenu.grid(row=5, column=1, padx=(10,10), pady=(10, 0))
+
+        # Rotary Encoders
+        self.encoderLabel = customtkinter.CTkLabel(master=self.home, text="-- ENCODERS --", anchor="w")
+        self.encoderLabel.grid(row=6, column=0, sticky="w", padx=(200, 10), pady=(30,20))
+
+        self.encoderOneLabel = customtkinter.CTkLabel(master=self.home, text="First Encoder:", anchor="w")
+        self.encoderTwoLabel = customtkinter.CTkLabel(master=self.home, text="Second Encoder:", anchor="w")
+        self.encoderThreeLabel = customtkinter.CTkLabel(master=self.home, text="Third Encoder:", anchor="w")
+
+        self.encoderOneLabel.grid(row=7, column=0, sticky="w", padx=(10, 10), pady=(0, 0))
+        self.encoderTwoLabel.grid(row=8, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
+        self.encoderThreeLabel.grid(row=9, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
+
+        self.encoderOneOptionMenu = customtkinter.CTkOptionMenu(master=self.home, values=App.ENCODER_PRESETS_NAMES, command=self.update_enc_key1, dynamic_resizing=False, width=210)
+        self.encoderTwoOptionMenu = customtkinter.CTkOptionMenu(master=self.home, values=App.ENCODER_PRESETS_NAMES, command=self.update_enc_key2, dynamic_resizing=False, width=210)
+        self.encoderThreeOptionMenu = customtkinter.CTkOptionMenu(master=self.home, values=App.ENCODER_PRESETS_NAMES, command=self.update_enc_key3, dynamic_resizing=False, width=210)
+
+        self.encoderOneOptionMenu.grid(row=7, column=1, padx=(10,10), pady=(10, 0))
+        self.encoderTwoOptionMenu.grid(row=8, column=1, padx=(10,10), pady=(10, 0))
+        self.encoderThreeOptionMenu.grid(row=9, column=1, padx=(10,10), pady=(10, 0))
 
         # Set default values
         self.createNewMacroWindow = None
@@ -214,12 +238,19 @@ class App(customtkinter.CTk):
         self.keyTwoOptionMenu.set('--No Macro Selected--')
         self.keyThreeOptionMenu.set('--No Macro Selected--')
         self.keyFourOptionMenu.set('--No Macro Selected--')
+        self.encoderOneOptionMenu.set('--No Encoder Macro Selected--')
+        self.encoderTwoOptionMenu.set('--No Encoder Macro Selected--')
+        self.encoderThreeOptionMenu.set('--No Encoder Macro Selected--')
 
     def search_preset(self, event=None):
         self.keyOneOptionMenu.configure(values=App.PRESET_NAMES)
         self.keyTwoOptionMenu.configure(values=App.PRESET_NAMES)
         self.keyThreeOptionMenu.configure(values=App.PRESET_NAMES)
         self.keyFourOptionMenu.configure(values=App.PRESET_NAMES)
+
+        self.encoderOneOptionMenu.configure(values=App.ENCODER_PRESETS_NAMES)
+        self.encoderTwoOptionMenu.configure(values=App.ENCODER_PRESETS_NAMES)
+        self.encoderThreeOptionMenu.configure(values=App.ENCODER_PRESETS_NAMES)
         # print(self.searchBar.get())
         # print(App.PRESETS)
         # print(App.PRESET_NAMES)
@@ -326,23 +357,34 @@ class App(customtkinter.CTk):
         os.system("taskkill /im macro-pad.exe")
     
     def update_key1(self, selectedMacro: str):
-        App.KEY1 = selectedMacro
         App.KEY1_id = self.search_for_macro(selectedMacro)
 
     def update_key2(self, selectedMacro: str):
-        App.KEY2 = selectedMacro
         App.KEY2_id = self.search_for_macro(selectedMacro)
 
     def update_key3(self, selectedMacro: str):
-        App.KEY3 = selectedMacro
         App.KEY3_id = self.search_for_macro(selectedMacro)
 
     def update_key4(self, selectedMacro: str):
-        App.KEY4 = selectedMacro
         App.KEY4_id = self.search_for_macro(selectedMacro)
-    
+
     def search_for_macro(self, selectedPreset: str):
         for preset in App.PRESETS:
+            if (selectedPreset == preset.name):
+                return preset.id
+        return ''
+
+    def update_enc_key1(self, selectedMacro: str):
+        App.ENCODER1_id = self.search_for_encoder_macro(selectedMacro)
+
+    def update_enc_key2(self, selectedMacro: str):
+        App.ENCODER1_id = self.search_for_encoder_macro(selectedMacro)
+
+    def update_enc_key3(self, selectedMacro: str):
+        App.ENCODER1_id = self.search_for_encoder_macro(selectedMacro)
+
+    def search_for_encoder_macro(self, selectedPreset: str):
+        for preset in App.ENCODER_PRESETS:
             if (selectedPreset == preset.name):
                 return preset.id
         return ''
