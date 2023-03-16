@@ -252,8 +252,6 @@ class App(customtkinter.CTk):
         self.encoderTwoOptionMenu.configure(values=App.ENCODER_PRESETS_NAMES)
         self.encoderThreeOptionMenu.configure(values=App.ENCODER_PRESETS_NAMES)
         # print(self.searchBar.get())
-        # print(App.PRESETS)
-        # print(App.PRESET_NAMES)
     
     def open_new_macro_window(self):
         self.createNewMacroWindow = CreateMacroWindow(self)
