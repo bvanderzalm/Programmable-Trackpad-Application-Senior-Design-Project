@@ -27,7 +27,7 @@ class CreateMacroWindow(customtkinter.CTkToplevel):
         # self.presetLabel.pack(padx=20, pady=20)
         self.presetOptionMenu = customtkinter.CTkOptionMenu(master=self, values=App.MACRO_LIST, command=self.save_dropdown_option, dynamic_resizing=False, width=300)
         self.presetOptionMenu.pack(padx=20, pady=20)
-        self.presetOptionMenu.set('--No macro selected--')
+        self.presetOptionMenu.set('--No Macro Selected--')
         self.presetNameEntry = customtkinter.CTkEntry(master=self, placeholder_text="Preset Name", width=300)
         self.presetNameEntry.pack(padx=20, pady=20)
         self.savePresetButton = customtkinter.CTkButton(master=self, text="Save", command=self.create_preset)
@@ -57,22 +57,58 @@ class CreateMacroWindow(customtkinter.CTkToplevel):
 
         # Close popup
         self.destroy()
-
     def save_dropdown_option(self, selectedMacro: str):
         CreateMacroWindow.macroType = selectedMacro
+
+class CreateRotaryEncoderMacroWindow(customtkinter.CTkToplevel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.title("Create New Rotary Encoder Macro Preset")
+        self.geometry("275x300")
+
+        macroType: str = ''
+
+        self.presetLabel = customtkinter.CTkLabel(self, text="Create New Rotary Encoder Macro Preset:", anchor="w")
+        self.presetLabel.pack(padx=20, pady=20)
+        self.presetOptionMenu = customtkinter.CTkOptionMenu(master=self, values=App.ROTARY_ENCODER_MACRO_LIST, command=self.save_dropdown_option, dynamic_resizing=False, width=300)
+        self.presetOptionMenu.pack(padx=20, pady=20)
+        self.presetOptionMenu.set('--No Encoder Macro Selected--')
+        self.presetNameEntry = customtkinter.CTkEntry(master=self, placeholder_text="Encoder Preset Name", width=300)
+        self.presetNameEntry.pack(padx=20, pady=20)
+        self.savePresetButton = customtkinter.CTkButton(master=self, text="Save", command=self.create_preset)
+        self.savePresetButton.pack(padx=20, pady=20)
+
+    def create_preset(self):
+        macroType: str = CreateRotaryEncoderMacroWindow.macroType
+        customName: str = self.presetNameEntry.get()
+
+        if (customName == '') or (macroType == ''):
+            return
+        
+        newPreset = CustomMacroPreset(str(uuid.uuid4()), customName, CreateRotaryEncoderMacroWindow.macroType)
+        App.ENCODER_PRESETS_NAMES.append(customName)
+        App.ENCODER_PRESETS.append(newPreset)
+
+        # Close popup
+        self.destroy()
+
+    def save_dropdown_option(self, selectedMacro: str):
+        CreateRotaryEncoderMacroWindow.macroType = selectedMacro
 
 class App(customtkinter.CTk):
 
     APP_NAME = "Programmable Trackpad"
     WIDTH = 800
     HEIGHT = 500
+    ROTARY_ENCODER_MACRO_LIST: list[str] = [
+        "Volume Control", "Mouse Scroll", 
+    ]
     MACRO_LIST: list[str] = [
-        "Google Search Selected Text", "Open Website", "Open Application", "Move up a Folder",
-        "Copy HEX color code to clipboard", "Open Command Prompt in current folder", "Run command in current folder",
+        "Google Search Selected Text", "Copy HEX color code to clipboard", "Open Website", "Open Application", "Volume Up", "Volume Down", "Volume Mute", "Play/Pause Media",
+        "Media Next", "Media Previous", "Browser Back", "Browser Forward", "Browser Refresh", "Insert preset message", "Empty Recycle Bin", "Open File Explorer at a Favorite Folder",
+        "Open Command Prompt in current folder", "Run command in current folder",
         "Open Command Prompt at a Favorite Folder", "Run Command at a Favorite Folder", 
-        "Open File Explorer at a Favorite Folder", "Volume Up", "Volume Down", "Volume Mute", "Play/Pause Media","Empty Recycle Bin", 
-        "Insert preset message",
-        ]
+    ]
     MACRO_LIST_THAT_REQUIRE_CUSTOM_INPUT: list[str] = [
         "Open Website", "Open Application", "Run command in current folder", "Open Command Prompt at a Favorite Folder",
         "Open File Explorer at a Favorite Folder", "Insert preset message"
@@ -82,11 +118,16 @@ class App(customtkinter.CTk):
         "Type in a Folder Path Location:", "Type in a Folder Path Location:", "Type in a Template Message:"
     ]
     PRESETS: list[CustomMacroPreset] = []
-    PRESET_NAMES: list[str] = ['--No macro selected--']
+    PRESET_NAMES: list[str] = ['--No Macro Selected--']
+    ENCODER_PRESETS: list[CustomMacroPreset] = []
+    ENCODER_PRESETS_NAMES: list[str] = ['--No Encoder Macro Selected--']
     KEY1_id: str = ''
     KEY2_id: str = ''
     KEY3_id: str = ''
     KEY4_id: str = ''
+    ENCODER1_id: str = ''
+    ENCODER2_id: str = ''
+    ENCODER3_id: str = ''
     debug_mode: str = "Remap to F1-F4"
     appearance_mode: str = "System"
 
@@ -113,14 +154,17 @@ class App(customtkinter.CTk):
         # -- Setup Sidebar component --
         self.sidebar.grid_rowconfigure(2, weight=1)
 
-        self.runAhkButton = customtkinter.CTkButton(master=self.sidebar, text="Program Board / Run AHK", command=self.run_ahk)
+        self.runAhkButton = customtkinter.CTkButton(master=self.sidebar, text="Start Running Macros", command=self.run_ahk)
         self.runAhkButton.grid(pady=(20, 0), padx=(20, 20), row=0, column=0)
 
-        self.stopAhkButton = customtkinter.CTkButton(master=self.sidebar,text="Stop AHK", command=self.stop_ahk)
+        self.stopAhkButton = customtkinter.CTkButton(master=self.sidebar,text="Stop Running Macros", command=self.stop_ahk)
         self.stopAhkButton.grid(pady=(20, 0), padx=(20, 20), row=1, column=0)
 
         self.createNewMacroButton = customtkinter.CTkButton(master=self.sidebar, text="Create New Macro", command=self.open_new_macro_window)
         self.createNewMacroButton.grid(pady=(20, 0), padx=(20, 20), row=2, column=0)
+
+        self.createNewRotaryEncoderMacroButton = customtkinter.CTkButton(master=self.sidebar, text="Create New Rotary Encoder Macro", command=self.open_new_rotary_encoder_macro_window)
+        self.createNewRotaryEncoderMacroButton.grid(pady=(20, 0), padx=(20, 20), row=3, column=0)
 
         self.debugModeLabel = customtkinter.CTkLabel(self.sidebar, text="Debug Mode:", anchor="w")
         self.debugModeLabel.grid(row=4, column=0, padx=(20,20), pady=(20,0))
@@ -163,12 +207,13 @@ class App(customtkinter.CTk):
 
         # Set default values
         self.createNewMacroWindow = None
+        self.createNewEncoderMacroWindow = None
         self.debugModeMenu.set(self.debug_mode)
         self.appearanceModeMenu.set(self.appearance_mode)
-        self.keyOneOptionMenu.set('--No macro selected--')
-        self.keyTwoOptionMenu.set('--No macro selected--')
-        self.keyThreeOptionMenu.set('--No macro selected--')
-        self.keyFourOptionMenu.set('--No macro selected--')
+        self.keyOneOptionMenu.set('--No Macro Selected--')
+        self.keyTwoOptionMenu.set('--No Macro Selected--')
+        self.keyThreeOptionMenu.set('--No Macro Selected--')
+        self.keyFourOptionMenu.set('--No Macro Selected--')
 
     def search_preset(self, event=None):
         self.keyOneOptionMenu.configure(values=App.PRESET_NAMES)
@@ -181,6 +226,9 @@ class App(customtkinter.CTk):
     
     def open_new_macro_window(self):
         self.createNewMacroWindow = CreateMacroWindow(self)
+    
+    def open_new_rotary_encoder_macro_window(self):
+        self.createNewEncoderMacroWindow = CreateRotaryEncoderMacroWindow(self)
 
     def run_ahk(self):
         self.create_and_run_ahk_script()
@@ -205,11 +253,9 @@ class App(customtkinter.CTk):
                 case "Google Search Selected Text":
                     f.write("{\n" + functionKey + "::\n\tSend, ^c\n\tSleep 50\n\tRun, https://www.google.com/search?q=%clipboard%\n\tReturn\n}\n\n")
                 case "Open Website":
-                    # website: str = "https://www.ucf.edu"
                     website: str = macro.userInput1
                     f.write(functionKey + "::Run, " + website + "\n\n")
                 case "Open Application":
-                    # appProcess: str = "Notepad"
                     appProcess: str = macro.userInput1
                     f.write(functionKey + "::Run " + appProcess + "\n\n")
                 case "Move up a Folder":
@@ -219,21 +265,16 @@ class App(customtkinter.CTk):
                 case "Open Command Prompt in current folder":
                     f.write(functionKey + "::\n{\n\tSend, !d\n\tSend,^c\n\tSleep 50\n\tRun cmd, %clipboard%\n\tReturn\n}\n\n")
                 case "Run command in current folder":
-                    # command: str = "git status"
                     command: str = macro.userInput1
                     f.write(functionKey + "::\n{\n\tSend, !d\n\tSend,^c\n\tSleep 50\n\tRun cmd, %clipboard%\n\tSleep 100\n\tSend, " + command + "\n\tSleep 100\n\tSend, {Enter}\n\tReturn\n}\n\n")
                 case "Open Command Prompt at a Favorite Folder":
-                    # folderLocation: str = "C:\\Users\\bvan5\\Desktop\\SeniorDesign"
                     folderLocation: str = macro.userInput1
                     f.write(functionKey + "::Run cmd, " + folderLocation + "\n\n")
                 case "Run Command at a Favorite Folder":
-                    # folderLocation: str = "C:\\Users\\bvan5\\Desktop\\SeniorDesign"
-                    # command: str = "git status"
                     folderLocation: str = macro.userInput1
                     command: str = macro.userInput2
                     f.write(functionKey + '::\n{\n\tRun cmd, ' + folderLocation + '\n\tSleep 100\n\tSend, ' + command + '\n\tSleep 100\n\tSend, {Enter}\n\tReturn\n}\n\n')
                 case "Open File Explorer at a Favorite Folder":
-                    # folderLocation: str = "C:\\Users\\bvan5\\Desktop\\SeniorDesign"
                     folderLocation: str = macro.userInput1
                     f.write(functionKey + "::Run " + folderLocation + "\n\n")
                 case "Volume Up":
@@ -247,9 +288,18 @@ class App(customtkinter.CTk):
                 case "Empty Recycle Bin":
                     f.write(functionKey + "::FileRecycleEmpty\n\n")
                 case "Insert preset message":
-                    # message: str = "this will show up whenever the user is typing"
                     message: str = macro.userInput1
                     f.write(functionKey + "::Send " + message + "\n\n")
+                case "Media Next":
+                    f.write(functionKey + "::Media_Next\n\n")
+                case "Media Prev":
+                    f.write(functionKey + "::Media_Prev\n\n")
+                case "Browser Back":
+                    f.write(functionKey + "::Browser_Back\n\n")
+                case "Browser Forward":
+                    f.write(functionKey + "::Browser_Forward\n\n")
+                case "Browser Refresh":
+                    f.write(functionKey + "::Browser_Refresh\n\n")
 
             counter = counter + 1
         
