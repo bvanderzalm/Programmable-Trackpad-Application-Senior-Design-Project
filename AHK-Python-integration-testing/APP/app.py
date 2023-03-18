@@ -286,7 +286,7 @@ class App(customtkinter.CTk):
 
         # Write to newly created text file with .ahk extension
         for id in ids:
-            macro = self.get_macro_by_id(id)
+            macro = self.get_macro_by_id(id, False)
             if (macro is None):
                 counter = counter + 1
                 continue
@@ -350,7 +350,7 @@ class App(customtkinter.CTk):
 
         # Write and remap function keys to same .ahk file
         for id in encoderIds:
-            macro = self.get_macro_by_id(id)
+            macro = self.get_macro_by_id(id, True)
             if (macro is None):
                 encCounter = encCounter + 2
                 continue
@@ -381,14 +381,16 @@ class App(customtkinter.CTk):
         os.chdir('..')
 
 
-    def get_macro_by_id(self, id: str):
-        for macro in App.PRESETS:
-            if (id == macro.id):
-                return macro
-            
-        for macro in App.ENCODER_PRESETS:
-            if (id == macro.id):
-                return macro
+    def get_macro_by_id(self, id: str, encoder: bool):
+        if (encoder == False):
+            for macro in App.PRESETS:
+                if (id == macro.id):
+                    return macro
+                
+        elif (encoder == True):
+            for macro in App.ENCODER_PRESETS:
+                if (id == macro.id):
+                    return macro
         
         return None
 
@@ -435,10 +437,32 @@ class App(customtkinter.CTk):
     def change_debug_mode(self, new_debug_mode: str):
         self.debug_mode = new_debug_mode
 
-    def save_custom_presets(self, fileName: str):
+    def save_user_settings(self, fileName: str):
         f = open(fileName, "w")
 
         f.write(self.appearance_mode + "\n")
+        ids = [App.KEY1_id, App.KEY2_id, App.KEY3_id, App.KEY4_id, App.ENCODER1_id, App.ENCODER2_id, App.ENCODER3_id]
+
+        counter = 0
+        encoder = False
+        for id in ids:
+            if (counter == 4):
+                encoder = True
+
+            macro = self.get_macro_by_id(id, encoder)
+            if (macro is None):
+                f.write("None\n")
+                continue
+            
+            f.write(macro.id + "\n")
+            counter = counter + 1
+        
+        f.close()
+
+    def save_custom_presets(self, fileName: str):
+        f = open(fileName, "w")
+
+        # f.write(self.appearance_mode + "\n")
 
         for macro in App.PRESETS:
             f.write("{\n" + str(macro.id) + "\n" + macro.name + "\n" + macro.macroType)
@@ -466,9 +490,9 @@ class App(customtkinter.CTk):
         counter = 0
         for line in lines:
             # Set appearance mode based on users' last setting (store on 1st line)
-            if (counter == 0 and (line == 'Dark' or line == 'Light' or line == 'System')):
-                self.change_appearance_mode(line)
-                self.appearanceModeMenu.set(self.appearance_mode)
+            # if (counter == 0 and (line == 'Dark' or line == 'Light' or line == 'System')):
+            #     self.change_appearance_mode(line)
+            #     self.appearanceModeMenu.set(self.appearance_mode)
 
             if (line == "{"):
                 tempId = lines[counter + 1]
@@ -502,6 +526,7 @@ class App(customtkinter.CTk):
 
     def on_closing(self, event=0):
         self.save_custom_presets("program-files/your-macros.txt")
+        self.save_user_settings("program-files/user-settings.txt")
         self.destroy()
 
     def start(self):

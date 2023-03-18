@@ -1,40 +1,27 @@
-Dark
 {
-03132e5a-2491-4500-97d9-9e7cea159d83
-Search Highlighted Text
-Google Search Selected Text
-},
-{
-caf36442-3c1c-43b8-bb8d-5e3716617504
-Get Color code at Mouse Pointer
+731c3a5d-a626-4096-b207-26335194e051
+Get current color
 Copy HEX color code to clipboard
 },
 {
-775ae74c-44db-453d-be79-09568152a538
+1b94ccdc-4c1d-4346-a7a1-734214cdf67c
+Insert preset message
+Insert preset message
+Hello there, This is a preset message that will type out for you automatically if you run this macro
+},
+{
+4a9bf5f2-4170-44e6-a09f-4263268b6bf2
 Open Youtube
 Open Website
-https://www.youtube.com
+www.youtube.com
 },
 {
-34688275-d4dd-4962-9d86-dfbb12c6f4ff
-Open File Explorer at SD2 folder
-Open File Explorer at a Favorite Folder
-C:\\Users\\bvan5\\Desktop\\SeniorDesign
+19a6ddf6-333d-44fd-9718-7f51faadd8fa
+mute
+Volume Mute
 },
 {
-146a2fa5-d702-4049-8324-a1a78d124cb4
-Open SD2 Folder in Command Prompt
-Open Command Prompt at a Favorite Folder
-C:\\Users\\bvan5\\Desktop\\SeniorDesign
-},
-{
-e46b97d3-5945-4fec-964c-ff9999843388
-Move up a Folder in File Explorer
-Move up a Folder
-},
-{
-9bea05dc-8729-4b6d-84fa-049bb36d4303
-Run Chrome
-Open Application
-chrome.exe
+bd545004-ffaf-4965-8018-5a31065e3bdc
+mute v2
+Volume Mute
 },
