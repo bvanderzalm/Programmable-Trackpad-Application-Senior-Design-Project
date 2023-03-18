@@ -1,4 +1,4 @@
-F1::
+F13::
 {
 	MouseGetPos, MouseX, MouseY
 	PixelGetColor, color, %MouseX%, %MouseY%, RGB
@@ -7,17 +7,17 @@ F1::
 	Return
 }
 
-F2::Run, www.youtube.com
+F14::Send Hello there, This is a preset message that will type out for you automatically if you run this macro
 
-F3::Send Hello there, This is a preset message that will type out for you automatically if you run this macro
+F15::Run, www.youtube.com
 
-F4::Volume_Mute
+F16::Volume_Mute
 
-F5::Volume_Down
+F17::Volume_Down
 
-F6::Volume_Up
+F18::Volume_Up
 
-F9::WheelUp
+F21::WheelUp
 
-F10::WheelDown
+F22::WheelDown
 

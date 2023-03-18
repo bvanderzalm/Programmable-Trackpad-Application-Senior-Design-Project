@@ -440,42 +440,106 @@ class App(customtkinter.CTk):
     def save_user_settings(self, fileName: str):
         f = open(fileName, "w")
 
-        f.write(self.appearance_mode + "\n")
         ids = [App.KEY1_id, App.KEY2_id, App.KEY3_id, App.KEY4_id, App.ENCODER1_id, App.ENCODER2_id, App.ENCODER3_id]
 
         counter = 0
         encoder = False
         for id in ids:
-            if (counter == 4):
+            if (counter >= 4):
                 encoder = True
 
             macro = self.get_macro_by_id(id, encoder)
             if (macro is None):
                 f.write("None\n")
-                continue
+            else:
+                f.write(macro.id + "\n")
             
-            f.write(macro.id + "\n")
             counter = counter + 1
         
-        f.close()
-
-    def save_custom_presets(self, fileName: str):
-        f = open(fileName, "w")
-
-        # f.write(self.appearance_mode + "\n")
-
-        for macro in App.PRESETS:
-            f.write("{\n" + str(macro.id) + "\n" + macro.name + "\n" + macro.macroType)
-            if macro.userInput1 is not None:
-                f.write("\n" + macro.userInput1)
-                if macro.userInput2 is not None:
-                    f.write("\n" + macro.userInput2)
-            
-            f.write("\n},\n")
+        f.write(self.appearance_mode + "\n")
         
         f.close()
 
-    def load_custom_presets(self, fileName: str):
+    def save_custom_presets(self, fileName: str, encoder: bool):
+        f = open(fileName, "w")
+
+        if (encoder == False):
+            for macro in App.PRESETS:
+                f.write("{\n" + str(macro.id) + "\n" + macro.name + "\n" + macro.macroType)
+                if macro.userInput1 is not None:
+                    f.write("\n" + macro.userInput1)
+                    if macro.userInput2 is not None:
+                        f.write("\n" + macro.userInput2)
+                
+                f.write("\n},\n")
+
+        elif (encoder == True):    
+            for macro in App.ENCODER_PRESETS:
+                f.write("{\n" + str(macro.id) + "\n" + macro.name + "\n" + macro.macroType + "\n},\n")
+        
+        f.close()
+    
+    def load_user_settings(self, fileName: str):
+        # Avoid reading a file that doesn't exist
+        if (exists(fileName) == False):
+            return
+        
+        # Read text file
+        lines: list[str] = []
+        with open(fileName, 'r') as f:
+            for line in f:
+                lines.append(str(line).replace("\n", ""))
+
+        # Set Ids and appearance mode
+        if (lines[0] != 'None'):
+            App.KEY1_id = lines[0]
+        if (lines[1] != 'None'):
+            App.KEY2_id = lines[1]
+        if (lines[2] != 'None'):
+            App.KEY3_id = lines[2]
+        if (lines[3] != 'None'):
+            App.KEY4_id = lines[3]
+
+        if (lines[4] != 'None'):
+            App.ENCODER1_id = lines[4]
+        if (lines[5] != 'None'):
+            App.ENCODER2_id = lines[5]
+        if (lines[6] != 'None'):
+            App.ENCODER3_id = lines[6]
+
+        self.change_appearance_mode(lines[7])
+        self.appearanceModeMenu.set(self.appearance_mode)
+
+        # Prepopulate macro dropdowns
+        macro = self.get_macro_by_id(App.KEY1_id, False)
+        if (macro is not None):
+            self.keyOneOptionMenu.set(macro.name)
+        
+        macro = self.get_macro_by_id(App.KEY2_id, False)
+        if (macro is not None):
+            self.keyTwoOptionMenu.set(macro.name)
+
+        macro = self.get_macro_by_id(App.KEY3_id, False)
+        if (macro is not None):
+            self.keyThreeOptionMenu.set(macro.name)
+
+        macro = self.get_macro_by_id(App.KEY4_id, False)
+        if (macro is not None):
+            self.keyFourOptionMenu.set(macro.name)
+
+        macro = self.get_macro_by_id(App.ENCODER1_id, True)
+        if (macro is not None):
+            self.encoderOneOptionMenu.set(macro.name)
+
+        macro = self.get_macro_by_id(App.ENCODER2_id, True)
+        if (macro is not None):
+            self.encoderTwoOptionMenu.set(macro.name)
+
+        macro = self.get_macro_by_id(App.ENCODER3_id, True)
+        if (macro is not None):
+            self.encoderThreeOptionMenu.set(macro.name)                        
+
+    def load_custom_presets(self, fileName: str, encoder: bool):
         # Avoid reading a file that doesn't exist
         if (exists(fileName) == False):
             return
@@ -487,50 +551,65 @@ class App(customtkinter.CTk):
                 lines.append(str(line).replace("\n", ""))
         
         # Interpret text file and store macros into Object array 
-        counter = 0
-        for line in lines:
-            # Set appearance mode based on users' last setting (store on 1st line)
-            # if (counter == 0 and (line == 'Dark' or line == 'Light' or line == 'System')):
-            #     self.change_appearance_mode(line)
-            #     self.appearanceModeMenu.set(self.appearance_mode)
+        if (encoder == False):
+            counter = 0
+            for line in lines:
+                if (line == "{"):
+                    tempId = lines[counter + 1]
+                    tempName = lines[counter + 2]
+                    tempType = lines[counter + 3]
 
-            if (line == "{"):
-                tempId = lines[counter + 1]
-                tempName = lines[counter + 2]
-                tempType = lines[counter + 3]
-
-                if (lines[counter + 4] == '},'):
-                    tempMacro = CustomMacroPreset(tempId, tempName, tempType)
-                    App.PRESET_NAMES.append(tempName)
-                    App.PRESETS.append(tempMacro)
-                    counter = counter + 1
-                    continue
-                
-                if (lines[counter + 5] == '},'):
-                    userInput1 = lines[counter + 4]
-                    tempMacro = CustomMacroPreset(tempId, tempName, tempType, userInput1)
-                    App.PRESET_NAMES.append(tempName)
-                    App.PRESETS.append(tempMacro)
-                else:
-                    userInput1 = lines[counter + 4]
-                    userInput2 = lines[counter + 5]
-                    tempMacro = CustomMacroPreset(tempId, tempName, tempType, userInput1, userInput2)
-                    App.PRESET_NAMES.append(tempName)
-                    App.PRESETS.append(tempMacro)
-            counter = counter + 1
+                    if (lines[counter + 4] == '},'):
+                        tempMacro = CustomMacroPreset(tempId, tempName, tempType)
+                        App.PRESET_NAMES.append(tempName)
+                        App.PRESETS.append(tempMacro)
+                        counter = counter + 1
+                        continue
+                    
+                    if (lines[counter + 5] == '},'):
+                        userInput1 = lines[counter + 4]
+                        tempMacro = CustomMacroPreset(tempId, tempName, tempType, userInput1)
+                        App.PRESET_NAMES.append(tempName)
+                        App.PRESETS.append(tempMacro)
+                    else:
+                        userInput1 = lines[counter + 4]
+                        userInput2 = lines[counter + 5]
+                        tempMacro = CustomMacroPreset(tempId, tempName, tempType, userInput1, userInput2)
+                        App.PRESET_NAMES.append(tempName)
+                        App.PRESETS.append(tempMacro)
+                counter = counter + 1
+            
+            self.keyOneOptionMenu.configure(values=App.PRESET_NAMES)
+            self.keyTwoOptionMenu.configure(values=App.PRESET_NAMES)
+            self.keyThreeOptionMenu.configure(values=App.PRESET_NAMES)
+            self.keyFourOptionMenu.configure(values=App.PRESET_NAMES)
         
-        self.keyOneOptionMenu.configure(values=App.PRESET_NAMES)
-        self.keyTwoOptionMenu.configure(values=App.PRESET_NAMES)
-        self.keyThreeOptionMenu.configure(values=App.PRESET_NAMES)
-        self.keyFourOptionMenu.configure(values=App.PRESET_NAMES)
-
+        elif (encoder == True):
+            counter = 0
+            for line in lines:
+                if (line == "{"):
+                    id = lines[counter + 1]
+                    name = lines[counter + 2]
+                    macroType = lines[counter + 3]
+                    macro = CustomMacroPreset(id, name, macroType)
+                    App.ENCODER_PRESETS_NAMES.append(name)
+                    App.ENCODER_PRESETS.append(macro)
+                counter = counter + 1
+            
+            self.encoderOneOptionMenu.configure(values=App.ENCODER_PRESETS_NAMES)
+            self.encoderTwoOptionMenu.configure(values=App.ENCODER_PRESETS_NAMES)
+            self.encoderThreeOptionMenu.configure(values=App.ENCODER_PRESETS_NAMES)
+    
     def on_closing(self, event=0):
-        self.save_custom_presets("program-files/your-macros.txt")
+        self.save_custom_presets("program-files/your-macros.txt", False)
+        self.save_custom_presets("program-files/encoder-macros.txt", True)
         self.save_user_settings("program-files/user-settings.txt")
         self.destroy()
 
     def start(self):
-        self.load_custom_presets("program-files/your-macros.txt")
+        self.load_custom_presets("program-files/your-macros.txt", False)
+        self.load_custom_presets("program-files/encoder-macros.txt", True)
+        self.load_user_settings("program-files/user-settings.txt")
         self.mainloop()
 
 
