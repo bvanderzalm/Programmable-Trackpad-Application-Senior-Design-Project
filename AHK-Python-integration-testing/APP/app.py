@@ -16,12 +16,13 @@ class CustomMacroPreset:
         return "\n{\nid: % s\nname: % s\nmacro Type: % s\nuserInput1: % s\nuserInput2: % s\n}\n" % (self.id, self.name, self.macroType, self.userInput1, self.userInput2)
 
 class CreateMacroWindow(customtkinter.CTkToplevel):
+    macroType: str = ''
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.title("Create New Macro Preset")
         self.geometry("400x300")
-
-        macroType: str = ''
+        CreateMacroWindow.macroType = ''
 
         # self.presetLabel = customtkinter.CTkLabel(self, text="First function key:", anchor="w")
         # self.presetLabel.pack(padx=20, pady=20)
@@ -58,7 +59,7 @@ class CreateMacroWindow(customtkinter.CTkToplevel):
             newPreset = CustomMacroPreset(str(uuid.uuid4()), customName, CreateMacroWindow.macroType)
             App.PRESET_NAMES.append(customName)
             App.PRESETS.append(newPreset)
-        
+
         # Close popup
         self.destroy()
 
@@ -66,12 +67,13 @@ class CreateMacroWindow(customtkinter.CTkToplevel):
         CreateMacroWindow.macroType = selectedMacro
 
 class CreateRotaryEncoderMacroWindow(customtkinter.CTkToplevel):
+    macroType: str = ''
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.title("Create New Rotary Encoder Macro Preset")
         self.geometry("275x300")
-
-        macroType: str = ''
+        CreateRotaryEncoderMacroWindow.macroType = ''
 
         self.presetLabel = customtkinter.CTkLabel(self, text="Create New Rotary Encoder Macro Preset:", anchor="w")
         self.presetLabel.pack(padx=20, pady=20)
@@ -93,7 +95,7 @@ class CreateRotaryEncoderMacroWindow(customtkinter.CTkToplevel):
 
         if (customName == '') or (macroType == ''):
             return
-        
+                
         newPreset = CustomMacroPreset(str(uuid.uuid4()), customName, CreateRotaryEncoderMacroWindow.macroType)
         App.ENCODER_PRESETS_NAMES.append(customName)
         App.ENCODER_PRESETS.append(newPreset)
@@ -198,10 +200,10 @@ class App(customtkinter.CTk):
         self.buttonLabel = customtkinter.CTkLabel(master=self.home, text="-- BUTTONS --", anchor="w")
         self.buttonLabel.grid(row=1, column=0, sticky="w", padx=(200, 10), pady=(30,20))
 
-        self.keyOneLabel = customtkinter.CTkLabel(master=self.home, text="First function key:", anchor="w")
-        self.keyTwoLabel = customtkinter.CTkLabel(master=self.home, text="Second function key:", anchor="w")
-        self.keyThreeLabel = customtkinter.CTkLabel(master=self.home, text="Third function key:", anchor="w")
-        self.keyFourLabel = customtkinter.CTkLabel(master=self.home, text="Fourth function key:", anchor="w")
+        self.keyOneLabel = customtkinter.CTkLabel(master=self.home, text="First Function key:", anchor="w")
+        self.keyTwoLabel = customtkinter.CTkLabel(master=self.home, text="Second Function key:", anchor="w")
+        self.keyThreeLabel = customtkinter.CTkLabel(master=self.home, text="Third Function key:", anchor="w")
+        self.keyFourLabel = customtkinter.CTkLabel(master=self.home, text="Fourth Function key:", anchor="w")
 
         self.keyOneLabel.grid(row=2, column=0, sticky="w", padx=(10, 10), pady=(0, 0))
         self.keyTwoLabel.grid(row=3, column=0, sticky="w", padx=(10, 10), pady=(10, 0))
@@ -269,15 +271,18 @@ class App(customtkinter.CTk):
         self.createNewEncoderMacroWindow = CreateRotaryEncoderMacroWindow(self)
 
     def run_ahk(self):
-        self.create_and_run_ahk_script()
+        self.create_ahk_script()
+        self.compile_ahk()
 
-    def create_and_run_ahk_script(self):
+    def create_ahk_script(self):
         f = open("program-files/macro-pad.ahk", "w")            
         ids = [App.KEY1_id, App.KEY2_id, App.KEY3_id, App.KEY4_id]
         if (self.debug_mode == "Remap to F1-F4"):
             counter = 1
+            encCounter = 5
         else:
             counter = 13
+            encCounter = 17
 
         # Write to newly created text file with .ahk extension
         for id in ids:
@@ -340,10 +345,32 @@ class App(customtkinter.CTk):
                     f.write(functionKey + "::Browser_Refresh\n\n")
 
             counter = counter + 1
+
+        encoderIds = [App.ENCODER1_id, App.ENCODER2_id, App.ENCODER3_id]
+
+        # Write and remap function keys to same .ahk file
+        for id in encoderIds:
+            macro = self.get_macro_by_id(id)
+            if (macro is None):
+                encCounter = encCounter + 2
+                continue
+            functionKey: str = "F" + str(encCounter)
+            nextKey: str = "F" + str(encCounter + 1)
+
+            match macro.macroType:
+                case "Volume Control":
+                    f.write(functionKey + "::Volume_Down\n\n")
+                    f.write(nextKey + "::Volume_Up\n\n")
+                case "Mouse Scroll":
+                    f.write(functionKey + "::WheelUp\n\n")
+                    f.write(nextKey + "::WheelDown\n\n")
+            
+            encCounter = encCounter + 2
         
         # Save newly created .ahk file
         f.close()
-
+    
+    def compile_ahk(self):
         path: str = "program-files/"
         os.chdir(path)
         # Compile .ahk file into .exe using AHK's compiler
@@ -353,8 +380,13 @@ class App(customtkinter.CTk):
         os.popen('macro-pad.exe')
         os.chdir('..')
 
+
     def get_macro_by_id(self, id: str):
         for macro in App.PRESETS:
+            if (id == macro.id):
+                return macro
+            
+        for macro in App.ENCODER_PRESETS:
             if (id == macro.id):
                 return macro
         
