@@ -1,4 +1,5 @@
-# Programmable Trackpad - Group 18 Senior Design UCF Spring 2023
+# Programmable Trackpad
+Senior Design UCF Spring 2023 - Group 18
 
 # Build 1.1
 Features
