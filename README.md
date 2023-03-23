@@ -1,4 +1,4 @@
-# AutoHotKey-testing
+# Programmable Trackpad
 
 # Build 1.1
 Features
