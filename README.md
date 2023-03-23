@@ -1,2 +1,2 @@
-# AutoHotKey-testing
-Some Python and AHK files testing for Senior Design Project 
+# Build 1.0.0
+Application build used for Midterm Demo
