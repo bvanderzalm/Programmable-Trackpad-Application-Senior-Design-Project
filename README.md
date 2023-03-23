@@ -12,3 +12,7 @@ Improvements
 Bug Fixes
 * Fixed issue on Create Macro Window popup where the cancel button would still add a preset to the list
 * Fixed issue on Create Macro Window popup where a user could create a macro with no settings
+
+The Next Step: Objectives
+* High Priority: Add ability to search, edit, and delete by (most complex out of all of the goals)
+* Medium Priority: Macros with two custom inputs such as "Run Command at a Favorite Folder", right now that macro doesn't do anything.
