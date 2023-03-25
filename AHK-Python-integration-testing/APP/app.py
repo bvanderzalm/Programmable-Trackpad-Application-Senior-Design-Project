@@ -1,4 +1,4 @@
-import customtkinter, os, uuid
+import customtkinter, os, uuid, sys
 from os.path import exists
 
 customtkinter.set_default_color_theme("blue")
@@ -55,10 +55,12 @@ class CreateMacroWindow(customtkinter.CTkToplevel):
                 newPreset = CustomMacroPreset(str(uuid.uuid4()), customName, CreateMacroWindow.macroType, customInput)
                 App.PRESET_NAMES.append(customName)
                 App.PRESETS.append(newPreset)
+                App.main.refresh_dropdowns()
         else:
             newPreset = CustomMacroPreset(str(uuid.uuid4()), customName, CreateMacroWindow.macroType)
             App.PRESET_NAMES.append(customName)
             App.PRESETS.append(newPreset)
+            App.main.refresh_dropdowns()
 
         # Close popup
         self.destroy()
@@ -99,6 +101,7 @@ class CreateRotaryEncoderMacroWindow(customtkinter.CTkToplevel):
         newPreset = CustomMacroPreset(str(uuid.uuid4()), customName, CreateRotaryEncoderMacroWindow.macroType)
         App.ENCODER_PRESETS_NAMES.append(customName)
         App.ENCODER_PRESETS.append(newPreset)
+        App.main.refresh_dropdowns()
 
         # Close popup
         self.destroy()
@@ -111,6 +114,7 @@ class App(customtkinter.CTk):
     APP_NAME = "Programmable Trackpad"
     WIDTH = 800
     HEIGHT = 500
+    main = customtkinter.CTk()
     ROTARY_ENCODER_MACRO_LIST: list[str] = [
         "Volume Control", "Mouse Scroll", 
     ]
@@ -193,7 +197,7 @@ class App(customtkinter.CTk):
         self.searchBar.grid(row=0, column=0, padx=(12,0), pady=(12,12))
         self.searchBar.bind("<Return>", self.search_preset)
 
-        self.searchButton = customtkinter.CTkButton(master=self.home, text="Search/Refresh", width=90, command=self.search_preset)
+        self.searchButton = customtkinter.CTkButton(master=self.home, text="Search", width=90, command=self.search_preset)
         self.searchButton.grid(row=0, column=1, padx=(12,0), pady=(12,12))
 
         # Button Keys
@@ -254,6 +258,9 @@ class App(customtkinter.CTk):
         self.encoderThreeOptionMenu.set('--No Encoder Macro Selected--')
 
     def search_preset(self, event=None):
+        print(self.searchBar.get())
+
+    def refresh_dropdowns(self):
         self.keyOneOptionMenu.configure(values=App.PRESET_NAMES)
         self.keyTwoOptionMenu.configure(values=App.PRESET_NAMES)
         self.keyThreeOptionMenu.configure(values=App.PRESET_NAMES)
@@ -262,12 +269,13 @@ class App(customtkinter.CTk):
         self.encoderOneOptionMenu.configure(values=App.ENCODER_PRESETS_NAMES)
         self.encoderTwoOptionMenu.configure(values=App.ENCODER_PRESETS_NAMES)
         self.encoderThreeOptionMenu.configure(values=App.ENCODER_PRESETS_NAMES)
-        # print(self.searchBar.get())
     
     def open_new_macro_window(self):
+        App.main = self
         self.createNewMacroWindow = CreateMacroWindow(self)
     
     def open_new_rotary_encoder_macro_window(self):
+        App.main = self
         self.createNewEncoderMacroWindow = CreateRotaryEncoderMacroWindow(self)
 
     def run_ahk(self):
@@ -606,7 +614,8 @@ class App(customtkinter.CTk):
         self.save_custom_presets("program-files/your-macros.txt", False)
         self.save_custom_presets("program-files/encoder-macros.txt", True)
         self.save_user_settings("program-files/user-settings.txt")
-        self.destroy()
+        # self.destroy()
+        sys.exit()
 
     def start(self):
         self.load_custom_presets("program-files/your-macros.txt", False)
