@@ -275,7 +275,9 @@ class App(customtkinter.CTk):
         self.compile_ahk()
 
     def create_ahk_script(self):
-        f = open("program-files/macro-pad.ahk", "w")            
+        f = open("program-files/macro-pad.ahk", "w")
+        f.write("#MaxHotkeysPerInterval 400\n\n")
+
         ids = [App.KEY1_id, App.KEY2_id, App.KEY3_id, App.KEY4_id]
         if (self.debug_mode == "Remap to F1-F4"):
             counter = 1
