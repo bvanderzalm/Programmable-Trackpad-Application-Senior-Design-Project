@@ -1,10 +1,11 @@
 # Programmable Trackpad
 Senior Design UCF Spring 2023 - Group 18
 
-## Improvement 1.1.2
+## Build 1.1.2 (Improvement)
+Improvement
 * User no longer has to click the refresh button to see their newly created macros in the home screen dropdowns. Now whenever they finish creating a macro and the popup window closes, the dropdowns are automatically refreshed.
 
-## HotFix 1.1.1
+## Build 1.1.1 (HotFix)
 Bug Fixes
 * Increased the amount of hotkeys that can occur within an interval (about 2 seconds) to 400 instead of 71. An warning popup would occur when using the rotary encoder macros very quickly.
 
