@@ -22,7 +22,7 @@ class SearchResultsWindow(customtkinter.CTkToplevel):
         self.title("Search Results")
         self.geometry("1000x400")
 
-        self.resultsGrid = customtkinter.CTkFrame(master=self, corner_radius=0)
+        self.resultsGrid = customtkinter.CTkScrollableFrame(master=self, width=1000, height=400)
         self.resultsGrid.grid(row=0, column=1, rowspan=1, pady=0, padx=0, sticky="nsew")
 
         numResults: int = App.searchResults.__len__()
@@ -209,7 +209,6 @@ class App(customtkinter.CTk):
         self.geometry("800x550")
         self.minsize(App.WIDTH, App.HEIGHT)
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
-        self.bind("<Command-w>", self.on_closing)
 
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
