@@ -14,6 +14,59 @@ class CustomMacroPreset:
     # For testing/debug purposes, print(CustomMacroPreset)
     def __repr__(self):
         return "\n{\nid: % s\nname: % s\nmacro Type: % s\nuserInput1: % s\nuserInput2: % s\n}\n" % (self.id, self.name, self.macroType, self.userInput1, self.userInput2)
+    
+class SearchResultsWindow(customtkinter.CTkToplevel):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.title("Search Results")
+        self.geometry("1000x400")
+
+        self.resultsGrid = customtkinter.CTkFrame(master=self, corner_radius=0)
+        self.resultsGrid.grid(row=0, column=1, rowspan=1, pady=0, padx=0, sticky="nsew")
+
+        numResults: int = App.searchResults.__len__()
+        msg: str = "Showing " + str(numResults) + " of " + str(App.PRESETS.__len__()) + " Custom Presets"
+
+        self.resultMessage = customtkinter.CTkLabel(master=self.resultsGrid, text=msg, anchor="w")
+        self.resultMessage.grid(row=0, column=0, padx=(12,0), pady=(12,12))
+
+        counter = 1
+        index = 0
+        for macro in App.searchResults:
+            customNameLabel = customtkinter.CTkLabel(master=self.resultsGrid, 
+                                                     text=macro.name, width=60, height=25,
+                                                     font=customtkinter.CTkFont(size=15, weight="bold"))
+            customNameLabel.grid(row=counter, column=0, padx=30)
+
+            macroTypeLabel = customtkinter.CTkLabel(master=self.resultsGrid, text=macro.macroType)
+            macroTypeLabel.grid(row=counter, column=1, padx=30)
+
+            editButton = customtkinter.CTkButton(master=self.resultsGrid, text="Edit", 
+                                                 command=lambda k=index: self.edit_macro(k))
+            editButton.grid(row=counter, column=2, padx=30)
+
+            deleteButton = customtkinter.CTkButton(master=self.resultsGrid, text="Delete", 
+                                                   command=lambda k=index: self.delete_macro(k), 
+                                                   fg_color="red", hover_color="#800000")
+            deleteButton.grid(row=counter, column=3, padx=30)
+
+            linebreak = customtkinter.CTkLabel(master=self.resultsGrid, text='____________________________________', 
+                                               font = customtkinter.CTkFont(size=20, weight="bold"))
+            linebreak.grid(row=(counter + 1), column=0)
+            counter = counter + 2
+            index = index + 1
+    
+    def edit_macro(self, index: int):
+        macro: CustomMacroPreset = self.get_macro_by_index(index)
+        print(macro)
+    
+    def delete_macro(self, index: int):
+        macro: CustomMacroPreset = self.get_macro_by_index(index)
+        print(macro)
+
+    def get_macro_by_index(self, index: int):
+        return App.searchResults[index]
 
 class CreateMacroWindow(customtkinter.CTkToplevel):
     macroType: str = ''
@@ -115,6 +168,8 @@ class App(customtkinter.CTk):
     WIDTH = 800
     HEIGHT = 500
     main = customtkinter.CTk()
+    searchQuery: str = ''
+    searchResults: list[CustomMacroPreset] = []
     ROTARY_ENCODER_MACRO_LIST: list[str] = [
         "Volume Control", "Mouse Scroll", 
     ]
@@ -247,6 +302,7 @@ class App(customtkinter.CTk):
         # Set default values
         self.createNewMacroWindow = None
         self.createNewEncoderMacroWindow = None
+        self.searchWindow = None
         self.debugModeMenu.set(self.debug_mode)
         self.appearanceModeMenu.set(self.appearance_mode)
         self.keyOneOptionMenu.set('--No Macro Selected--')
@@ -258,7 +314,18 @@ class App(customtkinter.CTk):
         self.encoderThreeOptionMenu.set('--No Encoder Macro Selected--')
 
     def search_preset(self, event=None):
-        print(self.searchBar.get())
+        App.searchQuery = self.searchBar.get().lower()
+        App.searchResults = self.get_macro_by_name(App.searchQuery)
+        self.searchWindow = SearchResultsWindow(self)
+
+    def get_macro_by_name(self, searchQuery: str):
+        searchResults: list[CustomMacroPreset] = []
+
+        for macro in App.PRESETS:
+            if (macro.name.lower().find(searchQuery) != -1 or macro.macroType.lower().find(searchQuery) != -1):
+                searchResults.append(macro)
+
+        return searchResults
 
     def refresh_dropdowns(self):
         self.keyOneOptionMenu.configure(values=App.PRESET_NAMES)
