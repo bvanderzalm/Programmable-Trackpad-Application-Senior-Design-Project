@@ -20,41 +20,45 @@ class SearchResultsWindow(customtkinter.CTkToplevel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.title("Search Results")
-        self.geometry("1000x400")
+        self.geometry("1050x400")
 
         self.resultsGrid = customtkinter.CTkScrollableFrame(master=self, width=1000, height=400)
         self.resultsGrid.grid(row=0, column=1, rowspan=1, pady=0, padx=0, sticky="nsew")
 
         numResults: int = App.searchResults.__len__()
-        msg: str = "Showing " + str(numResults) + " of " + str(App.PRESETS.__len__()) + " Custom Presets"
+        msg: str = "Showing " + str(numResults) + " of " + str(App.PRESETS.__len__()) + " Custom Presets with Search Query: "
 
         self.resultMessage = customtkinter.CTkLabel(master=self.resultsGrid, text=msg, anchor="w")
         self.resultMessage.grid(row=0, column=0, padx=(12,0), pady=(12,12))
 
-        counter = 1
+        self.searchQueryLabel = customtkinter.CTkLabel(master=self.resultsGrid, text=App.searchQuery, anchor="w", 
+                                                       font = customtkinter.CTkFont(size=12, weight="bold"))
+        self.searchQueryLabel.grid(row=0, column=1, padx=(12,0), pady=(12,12))
+
+        rowCounter = 1
         index = 0
         for macro in App.searchResults:
             customNameLabel = customtkinter.CTkLabel(master=self.resultsGrid, 
                                                      text=macro.name, width=60, height=25,
                                                      font=customtkinter.CTkFont(size=15, weight="bold"))
-            customNameLabel.grid(row=counter, column=0, padx=30)
+            customNameLabel.grid(row=rowCounter, column=0, padx=30)
 
             macroTypeLabel = customtkinter.CTkLabel(master=self.resultsGrid, text=macro.macroType)
-            macroTypeLabel.grid(row=counter, column=1, padx=30)
+            macroTypeLabel.grid(row=rowCounter, column=1, padx=30)
 
             editButton = customtkinter.CTkButton(master=self.resultsGrid, text="Edit", 
                                                  command=lambda k=index: self.edit_macro(k))
-            editButton.grid(row=counter, column=2, padx=30)
+            editButton.grid(row=rowCounter, column=2, padx=30)
 
             deleteButton = customtkinter.CTkButton(master=self.resultsGrid, text="Delete", 
                                                    command=lambda k=index: self.delete_macro(k), 
                                                    fg_color="red", hover_color="#800000")
-            deleteButton.grid(row=counter, column=3, padx=30)
+            deleteButton.grid(row=rowCounter, column=3, padx=30)
 
             linebreak = customtkinter.CTkLabel(master=self.resultsGrid, text='____________________________________', 
                                                font = customtkinter.CTkFont(size=20, weight="bold"))
-            linebreak.grid(row=(counter + 1), column=0)
-            counter = counter + 2
+            linebreak.grid(row=(rowCounter + 1), column=0)
+            rowCounter = rowCounter + 2
             index = index + 1
     
     def edit_macro(self, index: int):
