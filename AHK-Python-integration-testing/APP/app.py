@@ -22,6 +22,9 @@ class SearchResultsWindow(customtkinter.CTkToplevel):
         self.title("Search Results")
         self.geometry("1050x400")
 
+        self.generate_table()
+
+    def generate_table(self):
         self.resultsGrid = customtkinter.CTkScrollableFrame(master=self, width=1000, height=400)
         self.resultsGrid.grid(row=0, column=1, rowspan=1, pady=0, padx=0, sticky="nsew")
 
@@ -67,7 +70,9 @@ class SearchResultsWindow(customtkinter.CTkToplevel):
     
     def delete_macro(self, index: int):
         macro: CustomMacroPreset = self.get_macro_by_index(index)
-        print(macro)
+        App.searchResults.pop(index)
+        self.resultsGrid.grid_forget()
+        self.generate_table()
 
     def get_macro_by_index(self, index: int):
         return App.searchResults[index]
