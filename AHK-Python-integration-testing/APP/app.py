@@ -69,9 +69,41 @@ class SearchResultsWindow(customtkinter.CTkToplevel):
         print(macro)
     
     def delete_macro(self, index: int):
+        self.resultsGrid.grid_forget()
         macro: CustomMacroPreset = self.get_macro_by_index(index)
         App.searchResults.pop(index)
-        self.resultsGrid.grid_forget()
+
+        index = 0
+        for preset in App.PRESETS:
+            if (preset.id == macro.id):
+                App.PRESETS.pop(index)
+                break
+            index = index + 1
+        
+        index = 0
+        for preset in App.PRESET_NAMES:
+            if (preset == macro.name):
+                App.PRESET_NAMES.pop(index)
+                break
+            index = index + 1
+
+        if (App.KEY1_id == macro.id):
+            App.main.keyOneOptionMenu.set('--No Macro Selected--')
+            App.main.update_key1('')
+        
+        if (App.KEY2_id == macro.id):
+            App.main.keyTwoOptionMenu.set('--No Macro Selected--')
+            App.main.update_key2('')
+
+        if (App.KEY3_id == macro.id):
+            App.main.keyThreeOptionMenu.set('--No Macro Selected--')
+            App.main.update_key3('')
+        
+        if (App.KEY4_id == macro.id):
+            App.main.keyFourOptionMenu.set('--No Macro Selected--')
+            App.main.update_key4('')
+                
+        App.main.refresh_dropdowns()
         self.generate_table()
 
     def get_macro_by_index(self, index: int):
@@ -324,6 +356,7 @@ class App(customtkinter.CTk):
     def search_preset(self, event=None):
         App.searchQuery = self.searchBar.get().lower()
         App.searchResults = self.get_macro_by_name(App.searchQuery)
+        App.main = self
         self.searchWindow = SearchResultsWindow(self)
 
     def get_macro_by_name(self, searchQuery: str):
