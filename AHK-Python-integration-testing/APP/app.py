@@ -1,4 +1,4 @@
-import customtkinter, os, uuid, sys
+import customtkinter, os, uuid, sys, tkinter
 from os.path import exists
 
 customtkinter.set_default_color_theme("blue")
@@ -27,6 +27,7 @@ class SearchResultsWindow(customtkinter.CTkToplevel):
     def generate_table(self):
         self.resultsGrid = customtkinter.CTkScrollableFrame(master=self, width=1000, height=400)
         self.resultsGrid.grid(row=0, column=1, rowspan=1, pady=0, padx=0, sticky="nsew")
+        self.editWindow = None
 
         numResults: int = App.searchResults.__len__()
         msg: str = "Showing " + str(numResults) + " of " + str(App.PRESETS.__len__()) + " Custom Presets with Search Query: "
@@ -66,7 +67,7 @@ class SearchResultsWindow(customtkinter.CTkToplevel):
     
     def edit_macro(self, index: int):
         macro: CustomMacroPreset = self.get_macro_by_index(index)
-        print(macro)
+        self.editWindow = CreateMacroWindow(macro)
     
     def delete_macro(self, index: int):
         self.resultsGrid.grid_forget()
@@ -112,23 +113,33 @@ class SearchResultsWindow(customtkinter.CTkToplevel):
 class CreateMacroWindow(customtkinter.CTkToplevel):
     macroType: str = ''
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, macroToEdit: CustomMacroPreset, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.title("Create New Macro Preset")
         self.geometry("400x300")
         CreateMacroWindow.macroType = ''
+        self.macroToEdit = macroToEdit
 
-        # self.presetLabel = customtkinter.CTkLabel(self, text="First function key:", anchor="w")
-        # self.presetLabel.pack(padx=20, pady=20)
         self.presetOptionMenu = customtkinter.CTkOptionMenu(master=self, values=App.MACRO_LIST, command=self.save_dropdown_option, dynamic_resizing=False, width=300)
         self.presetOptionMenu.pack(padx=20, pady=20)
         self.presetOptionMenu.set('--No Macro Selected--')
-        self.presetNameEntry = customtkinter.CTkEntry(master=self, placeholder_text="Preset Name", width=300)
+        self.presetNameEntry = customtkinter.CTkEntry(master=self, width=300)
         self.presetNameEntry.pack(padx=20, pady=20)
         self.presetNameEntry.bind("<Return>", self.keybind_create_preset)
         self.savePresetButton = customtkinter.CTkButton(master=self, text="Save", command=self.create_preset)
         self.savePresetButton.pack(padx=20, pady=20)
-    
+
+        if (self.macroToEdit is None):
+            self.title("Create New Macro Preset")
+            self.presetOptionMenu.set('--No Macro Selected--')
+            self.presetNameEntry.configure(placeholder_text="Preset Name")
+        
+        else:
+            self.title("Edit " + self.macroToEdit.name)
+            self.presetOptionMenu.set(self.macroToEdit.macroType)
+            entryText = tkinter.StringVar()
+            entryText.set(self.macroToEdit.name)
+            self.presetNameEntry.configure(textvariable=entryText)
+            
     def keybind_create_preset(self, text):
         self.create_preset()
 
@@ -380,7 +391,7 @@ class App(customtkinter.CTk):
     
     def open_new_macro_window(self):
         App.main = self
-        self.createNewMacroWindow = CreateMacroWindow(self)
+        self.createNewMacroWindow = CreateMacroWindow(None)
     
     def open_new_rotary_encoder_macro_window(self):
         App.main = self
