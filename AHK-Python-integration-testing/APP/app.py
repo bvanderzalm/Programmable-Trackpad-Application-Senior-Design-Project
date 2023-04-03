@@ -28,7 +28,6 @@ class SearchResultsWindow(customtkinter.CTkToplevel):
     def generate_table(self):
         self.resultsGrid = customtkinter.CTkScrollableFrame(master=self, width=1000, height=400)
         self.resultsGrid.grid(row=0, column=1, rowspan=1, pady=0, padx=0, sticky="nsew")
-        self.editWindow = None
 
         numResults: int = App.searchResults.__len__()
         msg: str = "Showing " + str(numResults) + " of " + str(App.PRESETS.__len__()) + " Custom Presets with Search Query: "
@@ -68,7 +67,9 @@ class SearchResultsWindow(customtkinter.CTkToplevel):
     
     def edit_macro(self, index: int):
         macro: CustomMacroPreset = self.get_macro_by_index(index)
-        self.editWindow = CreateMacroWindow(macro)
+        if (App.main.createNewMacroWindow is not None):
+            App.main.createNewMacroWindow.destroy()
+        App.main.createNewMacroWindow = CreateMacroWindow(macro)
         self.destroy()
     
     def delete_macro(self, index: int):
@@ -149,7 +150,7 @@ class CreateMacroWindow(customtkinter.CTkToplevel):
             return
 
         duplicateName: bool = customName in App.PRESET_NAMES
-        if ((duplicateName and self.macroToEdit is None) or (duplicateName and self.macroToEdit.name != customName)):
+        if ((duplicateName and self.macroToEdit is None) or (duplicateName and self.macroToEdit.macroType != macroType)):
             msg: str = 'The name "' + customName + '" is already in use, please type another name'
             messagebox.showerror("Error", msg)
             return
@@ -420,6 +421,8 @@ class App(customtkinter.CTk):
         self.encoderThreeOptionMenu.set('--No Encoder Macro Selected--')
 
     def search_preset(self, event=None):
+        if self.searchWindow is not None:
+            self.searchWindow.destroy()
         App.searchQuery = self.searchBar.get().lower()
         App.searchResults = self.get_macro_by_name(App.searchQuery)
         App.main = self
@@ -445,10 +448,16 @@ class App(customtkinter.CTk):
         self.encoderThreeOptionMenu.configure(values=App.ENCODER_PRESETS_NAMES)
     
     def open_new_macro_window(self):
+        if (self.createNewMacroWindow is not None):
+            self.createNewMacroWindow.destroy()
+
         App.main = self
         self.createNewMacroWindow = CreateMacroWindow(None)
     
     def open_new_rotary_encoder_macro_window(self):
+        if (self.createNewEncoderMacroWindow is not None):
+            self.createNewEncoderMacroWindow.destroy()
+
         App.main = self
         self.createNewEncoderMacroWindow = CreateRotaryEncoderMacroWindow(self)
 
