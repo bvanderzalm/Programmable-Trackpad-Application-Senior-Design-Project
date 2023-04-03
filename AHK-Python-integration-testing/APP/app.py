@@ -1,5 +1,6 @@
 import customtkinter, os, uuid, sys, tkinter
 from os.path import exists
+from tkinter import messagebox
 
 customtkinter.set_default_color_theme("blue")
 
@@ -68,25 +69,20 @@ class SearchResultsWindow(customtkinter.CTkToplevel):
     def edit_macro(self, index: int):
         macro: CustomMacroPreset = self.get_macro_by_index(index)
         self.editWindow = CreateMacroWindow(macro)
+        self.destroy()
     
     def delete_macro(self, index: int):
         self.resultsGrid.grid_forget()
         macro: CustomMacroPreset = self.get_macro_by_index(index)
         App.searchResults.pop(index)
 
-        index = 0
-        for preset in App.PRESETS:
+        for index, preset in enumerate(App.PRESETS):
             if (preset.id == macro.id):
                 App.PRESETS.pop(index)
-                break
-            index = index + 1
         
-        index = 0
-        for preset in App.PRESET_NAMES:
-            if (preset == macro.name):
-                App.PRESET_NAMES.pop(index)
-                break
-            index = index + 1
+        App.PRESET_NAMES = []
+        for preset in App.PRESETS:
+            App.PRESET_NAMES.append(preset.name)
 
         if (App.KEY1_id == macro.id):
             App.main.keyOneOptionMenu.set('--No Macro Selected--')
@@ -135,6 +131,7 @@ class CreateMacroWindow(customtkinter.CTkToplevel):
         
         else:
             self.title("Edit " + self.macroToEdit.name)
+            self.save_dropdown_option(self.macroToEdit.macroType)
             self.presetOptionMenu.set(self.macroToEdit.macroType)
             entryText = tkinter.StringVar()
             entryText.set(self.macroToEdit.name)
@@ -148,6 +145,13 @@ class CreateMacroWindow(customtkinter.CTkToplevel):
         customName: str = self.presetNameEntry.get()
 
         if (customName == '') or (macroType == ''):
+            messagebox.showerror("Error", "Please fill out the entire form")
+            return
+
+        duplicateName: bool = customName in App.PRESET_NAMES
+        if ((duplicateName and self.macroToEdit is None) or (duplicateName and self.macroToEdit.name != customName)):
+            msg: str = 'The name "' + customName + '" is already in use, please type another name'
+            messagebox.showerror("Error", msg)
             return
         
         # If macro requires custom input, open Input dialog
@@ -157,21 +161,67 @@ class CreateMacroWindow(customtkinter.CTkToplevel):
             customInputDialog = customtkinter.CTkInputDialog(text=message, title=(macroType + " - " + customName))
             customInput = customInputDialog.get_input()
             if (customInput != None and customInput != ''):
-                newPreset = CustomMacroPreset(str(uuid.uuid4()), customName, CreateMacroWindow.macroType, customInput)
-                App.PRESET_NAMES.append(customName)
-                App.PRESETS.append(newPreset)
-                App.main.refresh_dropdowns()
+                if (self.macroToEdit is None):
+                    self.add_new_macro(customName, CreateMacroWindow.macroType, customInput)
+                else:
+                    self.edit_existing_macro(self.macroToEdit, customName, macroType, customInput)
+        # No custom input, only name and macroType
         else:
-            newPreset = CustomMacroPreset(str(uuid.uuid4()), customName, CreateMacroWindow.macroType)
-            App.PRESET_NAMES.append(customName)
-            App.PRESETS.append(newPreset)
-            App.main.refresh_dropdowns()
+            if (self.macroToEdit is None):
+                self.add_new_macro(customName, CreateMacroWindow.macroType)
+            else:
+                self.edit_existing_macro(self.macroToEdit, customName, CreateMacroWindow.macroType)
 
         # Close popup
         self.destroy()
 
     def save_dropdown_option(self, selectedMacro: str):
         CreateMacroWindow.macroType = selectedMacro
+
+    def add_new_macro(self, customName: str, macroType: str, customInput: str = None):
+        newPreset = CustomMacroPreset(str(uuid.uuid4()), customName, macroType, customInput)
+        App.PRESET_NAMES.append(customName)
+        App.PRESETS.append(newPreset)
+        App.main.refresh_dropdowns()
+
+    def edit_existing_macro(self, macro: CustomMacroPreset, customName: str, macroType: str, customInput: str = None):
+        index = self.find_macro_index(macro)
+        if (index != -1):
+            App.PRESETS[index].name = customName
+            App.PRESETS[index].macroType = macroType
+            if (customInput is not None):
+                App.PRESETS[index].userInput1 = customInput
+            self.update_preset_name_list(macro)
+            App.main.refresh_dropdowns()
+    
+    def find_macro_index(self, macro: CustomMacroPreset):
+        for index, preset in enumerate(App.PRESETS):
+            if (preset.id == macro.id):
+                return index
+        
+        return -1
+
+    def update_preset_name_list(self, macro: CustomMacroPreset):
+        App.PRESET_NAMES = []
+        for preset in App.PRESETS:
+            App.PRESET_NAMES.append(preset.name)
+
+        if (App.KEY1_id == macro.id):
+            App.main.keyOneOptionMenu.set(macro.name)
+            App.KEY1_id = macro.id
+        
+        if (App.KEY2_id == macro.id):
+            App.main.keyTwoOptionMenu.set(macro.name)
+            App.KEY2_id = macro.id
+
+        if (App.KEY3_id == macro.id):
+            App.main.keyThreeOptionMenu.set(macro.name)
+            App.KEY3_id = macro.id
+        
+        if (App.KEY4_id == macro.id):
+            App.main.keyFourOptionMenu.set(macro.name)
+            App.KEY4_id = macro.id
+        
 
 class CreateRotaryEncoderMacroWindow(customtkinter.CTkToplevel):
     macroType: str = ''
