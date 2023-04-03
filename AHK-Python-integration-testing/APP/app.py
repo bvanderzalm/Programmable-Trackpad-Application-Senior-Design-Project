@@ -158,7 +158,12 @@ class CreateMacroWindow(customtkinter.CTkToplevel):
         if (macroType in App.MACRO_LIST_THAT_REQUIRE_CUSTOM_INPUT):
             index = App.MACRO_LIST_THAT_REQUIRE_CUSTOM_INPUT.index(macroType)
             message = App.CUSTOM_INPUT_PLACEHOLDER_MESSAGES[index]
-            customInputDialog = customtkinter.CTkInputDialog(text=message, title=(macroType + " - " + customName))
+            prePopulatedInput = ""
+            if (self.macroToEdit is not None and macroType == self.macroToEdit.macroType):
+                prePopulatedInput = self.macroToEdit.userInput1
+
+            customInputDialog = customtkinter.CTkInputDialog(text=message, title=(macroType + " - " + customName), 
+                                                             pre_populated_value=prePopulatedInput)
             customInput = customInputDialog.get_input()
             if (customInput != None and customInput != ''):
                 if (self.macroToEdit is None):
