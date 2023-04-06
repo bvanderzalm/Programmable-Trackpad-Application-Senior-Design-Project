@@ -9,8 +9,9 @@ Features
 * Improved CreateMacroWindow class to have edit functionality. Optional macro can be passed in where if so, it will pre-populate all forms where you can then make edits
 
 Improvements
-* Added error popups in CreateMacroWindow if user try to create a blank macro or create a macro with a name that already exists.
-* Upgraded tkinter UI library to latest version.
+* Anytime the user creates, edits, or deletes a macro the dropdowns will be updated automatically
+* Added error popups in CreateMacroWindow if user try to create a blank macro or create a macro with a name that already exists
+* Upgraded tkinter UI library to latest version
 * Overall code improvement and cleanup
 
 ## Build 1.1.2 (Improvement)
