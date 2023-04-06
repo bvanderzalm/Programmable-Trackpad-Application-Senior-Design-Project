@@ -40,8 +40,7 @@ class SearchResultsWindow(customtkinter.CTkToplevel):
         self.searchQueryLabel.grid(row=0, column=1, padx=(12,0), pady=(12,12))
 
         rowCounter = 1
-        index = 0
-        for macro in App.searchResults:
+        for index, macro in enumerate(App.searchResults):
             customNameLabel = customtkinter.CTkLabel(master=self.resultsGrid, 
                                                      text=macro.name, width=60, height=25,
                                                      font=customtkinter.CTkFont(size=15, weight="bold"))
@@ -63,10 +62,9 @@ class SearchResultsWindow(customtkinter.CTkToplevel):
                                                font = customtkinter.CTkFont(size=20, weight="bold"))
             linebreak.grid(row=(rowCounter + 1), column=0)
             rowCounter = rowCounter + 2
-            index = index + 1
     
     def edit_macro(self, index: int):
-        macro: CustomMacroPreset = self.get_macro_by_index(index)
+        macro: CustomMacroPreset = App.searchResults[index]
         if (App.main.createNewMacroWindow is not None):
             App.main.createNewMacroWindow.destroy()
         App.main.createNewMacroWindow = CreateMacroWindow(macro)
@@ -74,7 +72,7 @@ class SearchResultsWindow(customtkinter.CTkToplevel):
     
     def delete_macro(self, index: int):
         self.resultsGrid.grid_forget()
-        macro: CustomMacroPreset = self.get_macro_by_index(index)
+        macro: CustomMacroPreset = App.searchResults[index]
         App.searchResults.pop(index)
 
         for index, preset in enumerate(App.PRESETS):
@@ -103,9 +101,6 @@ class SearchResultsWindow(customtkinter.CTkToplevel):
                 
         App.main.refresh_dropdowns()
         self.generate_table()
-
-    def get_macro_by_index(self, index: int):
-        return App.searchResults[index]
 
 class CreateMacroWindow(customtkinter.CTkToplevel):
     macroType: str = ''
@@ -168,15 +163,15 @@ class CreateMacroWindow(customtkinter.CTkToplevel):
             customInput = customInputDialog.get_input()
             if (customInput != None and customInput != ''):
                 if (self.macroToEdit is None):
-                    self.add_new_macro(customName, CreateMacroWindow.macroType, customInput)
+                    self.add_new_macro(customName, macroType, customInput)
                 else:
                     self.edit_existing_macro(self.macroToEdit, customName, macroType, customInput)
         # No custom input, only name and macroType
         else:
             if (self.macroToEdit is None):
-                self.add_new_macro(customName, CreateMacroWindow.macroType)
+                self.add_new_macro(customName, macroType)
             else:
-                self.edit_existing_macro(self.macroToEdit, customName, CreateMacroWindow.macroType)
+                self.edit_existing_macro(self.macroToEdit, customName, macroType)
 
         # Close popup
         self.destroy()
@@ -424,11 +419,11 @@ class App(customtkinter.CTk):
         if self.searchWindow is not None:
             self.searchWindow.destroy()
         App.searchQuery = self.searchBar.get().lower()
-        App.searchResults = self.get_macro_by_name(App.searchQuery)
+        App.searchResults = self.get_macros_by_name(App.searchQuery)
         App.main = self
         self.searchWindow = SearchResultsWindow(self)
 
-    def get_macro_by_name(self, searchQuery: str):
+    def get_macros_by_name(self, searchQuery: str):
         searchResults: list[CustomMacroPreset] = []
 
         for macro in App.PRESETS:
