@@ -1,5 +1,6 @@
-import customtkinter, os, uuid, sys
+import customtkinter, os, uuid, sys, tkinter
 from os.path import exists
+from tkinter import messagebox
 
 customtkinter.set_default_color_theme("blue")
 
@@ -14,27 +15,124 @@ class CustomMacroPreset:
     # For testing/debug purposes, print(CustomMacroPreset)
     def __repr__(self):
         return "\n{\nid: % s\nname: % s\nmacro Type: % s\nuserInput1: % s\nuserInput2: % s\n}\n" % (self.id, self.name, self.macroType, self.userInput1, self.userInput2)
+    
+class SearchResultsWindow(customtkinter.CTkToplevel):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.title("Search Results")
+        self.geometry("1050x400")
+
+        self.generate_table()
+
+    def generate_table(self):
+        self.resultsGrid = customtkinter.CTkScrollableFrame(master=self, width=1000, height=400)
+        self.resultsGrid.grid(row=0, column=1, rowspan=1, pady=0, padx=0, sticky="nsew")
+
+        numResults: int = App.searchResults.__len__()
+        msg: str = "Showing " + str(numResults) + " of " + str(App.PRESETS.__len__()) + " Custom Presets with Search Query: "
+
+        self.resultMessage = customtkinter.CTkLabel(master=self.resultsGrid, text=msg, anchor="w")
+        self.resultMessage.grid(row=0, column=0, padx=(12,0), pady=(12,12))
+
+        self.searchQueryLabel = customtkinter.CTkLabel(master=self.resultsGrid, text=App.searchQuery, anchor="w", 
+                                                       font = customtkinter.CTkFont(size=12, weight="bold"))
+        self.searchQueryLabel.grid(row=0, column=1, padx=(12,0), pady=(12,12))
+
+        rowCounter = 1
+        for index, macro in enumerate(App.searchResults):
+            customNameLabel = customtkinter.CTkLabel(master=self.resultsGrid, 
+                                                     text=macro.name, width=60, height=25,
+                                                     font=customtkinter.CTkFont(size=15, weight="bold"))
+            customNameLabel.grid(row=rowCounter, column=0, padx=30)
+
+            macroTypeLabel = customtkinter.CTkLabel(master=self.resultsGrid, text=macro.macroType)
+            macroTypeLabel.grid(row=rowCounter, column=1, padx=30)
+
+            editButton = customtkinter.CTkButton(master=self.resultsGrid, text="Edit", 
+                                                 command=lambda k=index: self.edit_macro(k))
+            editButton.grid(row=rowCounter, column=2, padx=30)
+
+            deleteButton = customtkinter.CTkButton(master=self.resultsGrid, text="Delete", 
+                                                   command=lambda k=index: self.delete_macro(k), 
+                                                   fg_color="red", hover_color="#800000")
+            deleteButton.grid(row=rowCounter, column=3, padx=30)
+
+            linebreak = customtkinter.CTkLabel(master=self.resultsGrid, text='____________________________________', 
+                                               font = customtkinter.CTkFont(size=20, weight="bold"))
+            linebreak.grid(row=(rowCounter + 1), column=0)
+            rowCounter = rowCounter + 2
+    
+    def edit_macro(self, index: int):
+        macro: CustomMacroPreset = App.searchResults[index]
+        if (App.main.createNewMacroWindow is not None):
+            App.main.createNewMacroWindow.destroy()
+        App.main.createNewMacroWindow = CreateMacroWindow(macro)
+        self.destroy()
+    
+    def delete_macro(self, index: int):
+        self.resultsGrid.grid_forget()
+        macro: CustomMacroPreset = App.searchResults[index]
+        App.searchResults.pop(index)
+
+        for index, preset in enumerate(App.PRESETS):
+            if (preset.id == macro.id):
+                App.PRESETS.pop(index)
+        
+        App.PRESET_NAMES = []
+        for preset in App.PRESETS:
+            App.PRESET_NAMES.append(preset.name)
+
+        if (App.KEY1_id == macro.id):
+            App.main.keyOneOptionMenu.set('--No Macro Selected--')
+            App.main.update_key1('')
+        
+        if (App.KEY2_id == macro.id):
+            App.main.keyTwoOptionMenu.set('--No Macro Selected--')
+            App.main.update_key2('')
+
+        if (App.KEY3_id == macro.id):
+            App.main.keyThreeOptionMenu.set('--No Macro Selected--')
+            App.main.update_key3('')
+        
+        if (App.KEY4_id == macro.id):
+            App.main.keyFourOptionMenu.set('--No Macro Selected--')
+            App.main.update_key4('')
+                
+        App.main.refresh_dropdowns()
+        self.generate_table()
 
 class CreateMacroWindow(customtkinter.CTkToplevel):
     macroType: str = ''
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, macroToEdit: CustomMacroPreset, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.title("Create New Macro Preset")
         self.geometry("400x300")
         CreateMacroWindow.macroType = ''
+        self.macroToEdit = macroToEdit
 
-        # self.presetLabel = customtkinter.CTkLabel(self, text="First function key:", anchor="w")
-        # self.presetLabel.pack(padx=20, pady=20)
         self.presetOptionMenu = customtkinter.CTkOptionMenu(master=self, values=App.MACRO_LIST, command=self.save_dropdown_option, dynamic_resizing=False, width=300)
         self.presetOptionMenu.pack(padx=20, pady=20)
         self.presetOptionMenu.set('--No Macro Selected--')
-        self.presetNameEntry = customtkinter.CTkEntry(master=self, placeholder_text="Preset Name", width=300)
+        self.presetNameEntry = customtkinter.CTkEntry(master=self, width=300)
         self.presetNameEntry.pack(padx=20, pady=20)
         self.presetNameEntry.bind("<Return>", self.keybind_create_preset)
         self.savePresetButton = customtkinter.CTkButton(master=self, text="Save", command=self.create_preset)
         self.savePresetButton.pack(padx=20, pady=20)
-    
+
+        if (self.macroToEdit is None):
+            self.title("Create New Macro Preset")
+            self.presetOptionMenu.set('--No Macro Selected--')
+            self.presetNameEntry.configure(placeholder_text="Preset Name")
+        
+        else:
+            self.title("Edit " + self.macroToEdit.name)
+            self.save_dropdown_option(self.macroToEdit.macroType)
+            self.presetOptionMenu.set(self.macroToEdit.macroType)
+            entryText = tkinter.StringVar()
+            entryText.set(self.macroToEdit.name)
+            self.presetNameEntry.configure(textvariable=entryText)
+            
     def keybind_create_preset(self, text):
         self.create_preset()
 
@@ -43,30 +141,88 @@ class CreateMacroWindow(customtkinter.CTkToplevel):
         customName: str = self.presetNameEntry.get()
 
         if (customName == '') or (macroType == ''):
+            messagebox.showerror("Error", "Please fill out the entire form")
+            return
+
+        duplicateName: bool = customName in App.PRESET_NAMES
+        if ((duplicateName and self.macroToEdit is None) or (duplicateName and self.macroToEdit.macroType != macroType)):
+            msg: str = 'The name "' + customName + '" is already in use, please type another name'
+            messagebox.showerror("Error", msg)
             return
         
         # If macro requires custom input, open Input dialog
         if (macroType in App.MACRO_LIST_THAT_REQUIRE_CUSTOM_INPUT):
             index = App.MACRO_LIST_THAT_REQUIRE_CUSTOM_INPUT.index(macroType)
             message = App.CUSTOM_INPUT_PLACEHOLDER_MESSAGES[index]
-            customInputDialog = customtkinter.CTkInputDialog(text=message, title=(macroType + " - " + customName))
+            prePopulatedInput = ""
+            if (self.macroToEdit is not None and macroType == self.macroToEdit.macroType):
+                prePopulatedInput = self.macroToEdit.userInput1
+
+            customInputDialog = customtkinter.CTkInputDialog(text=message, title=(macroType + " - " + customName), 
+                                                             pre_populated_value=prePopulatedInput)
             customInput = customInputDialog.get_input()
             if (customInput != None and customInput != ''):
-                newPreset = CustomMacroPreset(str(uuid.uuid4()), customName, CreateMacroWindow.macroType, customInput)
-                App.PRESET_NAMES.append(customName)
-                App.PRESETS.append(newPreset)
-                App.main.refresh_dropdowns()
+                if (self.macroToEdit is None):
+                    self.add_new_macro(customName, macroType, customInput)
+                else:
+                    self.edit_existing_macro(self.macroToEdit, customName, macroType, customInput)
+        # No custom input, only name and macroType
         else:
-            newPreset = CustomMacroPreset(str(uuid.uuid4()), customName, CreateMacroWindow.macroType)
-            App.PRESET_NAMES.append(customName)
-            App.PRESETS.append(newPreset)
-            App.main.refresh_dropdowns()
+            if (self.macroToEdit is None):
+                self.add_new_macro(customName, macroType)
+            else:
+                self.edit_existing_macro(self.macroToEdit, customName, macroType)
 
         # Close popup
         self.destroy()
 
     def save_dropdown_option(self, selectedMacro: str):
         CreateMacroWindow.macroType = selectedMacro
+
+    def add_new_macro(self, customName: str, macroType: str, customInput: str = None):
+        newPreset = CustomMacroPreset(str(uuid.uuid4()), customName, macroType, customInput)
+        App.PRESET_NAMES.append(customName)
+        App.PRESETS.append(newPreset)
+        App.main.refresh_dropdowns()
+
+    def edit_existing_macro(self, macro: CustomMacroPreset, customName: str, macroType: str, customInput: str = None):
+        index = self.find_macro_index(macro)
+        if (index != -1):
+            App.PRESETS[index].name = customName
+            App.PRESETS[index].macroType = macroType
+            if (customInput is not None):
+                App.PRESETS[index].userInput1 = customInput
+            self.update_preset_name_list(macro)
+            App.main.refresh_dropdowns()
+    
+    def find_macro_index(self, macro: CustomMacroPreset):
+        for index, preset in enumerate(App.PRESETS):
+            if (preset.id == macro.id):
+                return index
+        
+        return -1
+
+    def update_preset_name_list(self, macro: CustomMacroPreset):
+        App.PRESET_NAMES = []
+        for preset in App.PRESETS:
+            App.PRESET_NAMES.append(preset.name)
+
+        if (App.KEY1_id == macro.id):
+            App.main.keyOneOptionMenu.set(macro.name)
+            App.KEY1_id = macro.id
+        
+        if (App.KEY2_id == macro.id):
+            App.main.keyTwoOptionMenu.set(macro.name)
+            App.KEY2_id = macro.id
+
+        if (App.KEY3_id == macro.id):
+            App.main.keyThreeOptionMenu.set(macro.name)
+            App.KEY3_id = macro.id
+        
+        if (App.KEY4_id == macro.id):
+            App.main.keyFourOptionMenu.set(macro.name)
+            App.KEY4_id = macro.id
+        
 
 class CreateRotaryEncoderMacroWindow(customtkinter.CTkToplevel):
     macroType: str = ''
@@ -115,6 +271,8 @@ class App(customtkinter.CTk):
     WIDTH = 800
     HEIGHT = 500
     main = customtkinter.CTk()
+    searchQuery: str = ''
+    searchResults: list[CustomMacroPreset] = []
     ROTARY_ENCODER_MACRO_LIST: list[str] = [
         "Volume Control", "Mouse Scroll", 
     ]
@@ -154,7 +312,6 @@ class App(customtkinter.CTk):
         self.geometry("800x550")
         self.minsize(App.WIDTH, App.HEIGHT)
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
-        self.bind("<Command-w>", self.on_closing)
 
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
@@ -247,6 +404,7 @@ class App(customtkinter.CTk):
         # Set default values
         self.createNewMacroWindow = None
         self.createNewEncoderMacroWindow = None
+        self.searchWindow = None
         self.debugModeMenu.set(self.debug_mode)
         self.appearanceModeMenu.set(self.appearance_mode)
         self.keyOneOptionMenu.set('--No Macro Selected--')
@@ -258,7 +416,21 @@ class App(customtkinter.CTk):
         self.encoderThreeOptionMenu.set('--No Encoder Macro Selected--')
 
     def search_preset(self, event=None):
-        print(self.searchBar.get())
+        if self.searchWindow is not None:
+            self.searchWindow.destroy()
+        App.searchQuery = self.searchBar.get().lower()
+        App.searchResults = self.get_macros_by_name(App.searchQuery)
+        App.main = self
+        self.searchWindow = SearchResultsWindow(self)
+
+    def get_macros_by_name(self, searchQuery: str):
+        searchResults: list[CustomMacroPreset] = []
+
+        for macro in App.PRESETS:
+            if (macro.name.lower().find(searchQuery) != -1 or macro.macroType.lower().find(searchQuery) != -1):
+                searchResults.append(macro)
+
+        return searchResults
 
     def refresh_dropdowns(self):
         self.keyOneOptionMenu.configure(values=App.PRESET_NAMES)
@@ -271,10 +443,16 @@ class App(customtkinter.CTk):
         self.encoderThreeOptionMenu.configure(values=App.ENCODER_PRESETS_NAMES)
     
     def open_new_macro_window(self):
+        if (self.createNewMacroWindow is not None):
+            self.createNewMacroWindow.destroy()
+
         App.main = self
-        self.createNewMacroWindow = CreateMacroWindow(self)
+        self.createNewMacroWindow = CreateMacroWindow(None)
     
     def open_new_rotary_encoder_macro_window(self):
+        if (self.createNewEncoderMacroWindow is not None):
+            self.createNewEncoderMacroWindow.destroy()
+
         App.main = self
         self.createNewEncoderMacroWindow = CreateRotaryEncoderMacroWindow(self)
 

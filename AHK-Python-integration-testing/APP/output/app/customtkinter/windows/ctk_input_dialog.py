@@ -6,6 +6,8 @@ from .widgets import CTkButton
 from .widgets.theme import ThemeManager
 from .ctk_toplevel import CTkToplevel
 
+import tkinter
+
 
 class CTkInputDialog(CTkToplevel):
     """
@@ -23,6 +25,7 @@ class CTkInputDialog(CTkToplevel):
                  entry_border_color: Optional[Union[str, Tuple[str, str]]] = None,
                  entry_text_color: Optional[Union[str, Tuple[str, str]]] = None,
 
+                 pre_populated_value: str = "",
                  title: str = "CTkDialog",
                  text: str = "CTkDialog"):
 
@@ -40,6 +43,7 @@ class CTkInputDialog(CTkToplevel):
         self._user_input: Union[str, None] = None
         self._running: bool = False
         self._text = text
+        self._pre_popuplated_value = pre_populated_value
 
         self.title(title)
         self.lift()  # lift window on top
@@ -68,6 +72,9 @@ class CTkInputDialog(CTkToplevel):
                                border_color=self._entry_border_color,
                                text_color=self._entry_text_color)
         self._entry.grid(row=1, column=0, columnspan=2, padx=20, pady=(0, 20), sticky="ew")
+        entryText = tkinter.StringVar()
+        entryText.set(self._pre_popuplated_value)
+        self._entry.configure(textvariable=entryText)
 
         self._ok_button = CTkButton(master=self,
                                     width=100,
