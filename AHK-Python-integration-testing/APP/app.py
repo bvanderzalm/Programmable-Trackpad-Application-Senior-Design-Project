@@ -252,9 +252,15 @@ class CreateRotaryEncoderMacroWindow(customtkinter.CTkToplevel):
         customName: str = self.presetNameEntry.get()
 
         if (customName == '') or (macroType == ''):
+            messagebox.showerror("Error", "Please fill out the entire form")
+            return
+
+        if (customName in App.ENCODER_PRESETS_NAMES):
+            msg: str = 'The name "' + customName + '" is already in use, please type another name'
+            messagebox.showerror("Error", msg)
             return
                 
-        newPreset = CustomMacroPreset(str(uuid.uuid4()), customName, CreateRotaryEncoderMacroWindow.macroType)
+        newPreset = CustomMacroPreset(str(uuid.uuid4()), customName, macroType)
         App.ENCODER_PRESETS_NAMES.append(customName)
         App.ENCODER_PRESETS.append(newPreset)
         App.main.refresh_dropdowns()
@@ -280,14 +286,14 @@ class App(customtkinter.CTk):
         "Google Search Selected Text", "Copy HEX color code to clipboard", "Open Website", "Open Application", "Volume Up", "Volume Down", "Volume Mute", "Play/Pause Media",
         "Media Next", "Media Previous", "Browser Back", "Browser Forward", "Browser Refresh", "Insert preset message", "Empty Recycle Bin", "Open File Explorer at a Favorite Folder",
         "Open Command Prompt in current folder", "Run command in current folder",
-        "Open Command Prompt at a Favorite Folder", "Run Command at a Favorite Folder", 
+        "Open Command Prompt at a Favorite Folder", 
     ]
     MACRO_LIST_THAT_REQUIRE_CUSTOM_INPUT: list[str] = [
         "Open Website", "Open Application", "Run command in current folder", "Open Command Prompt at a Favorite Folder",
         "Open File Explorer at a Favorite Folder", "Insert preset message"
     ]
     CUSTOM_INPUT_PLACEHOLDER_MESSAGES: list[str] = [
-        "Type in a Website URL:", "Type in a Application Process (chrome.exe, notepad, etc.):", "Type in a Command (git status, cd Desktop, etc.):",
+        "Type in a Website URL in https format:", "Type in a Application Process (chrome.exe, notepad, etc.):", "Type in a Command (git status, cd Desktop, etc.):",
         "Type in a Folder Path Location:", "Type in a Folder Path Location:", "Type in a Template Message:"
     ]
     PRESETS: list[CustomMacroPreset] = []
@@ -324,7 +330,7 @@ class App(customtkinter.CTk):
         self.home.grid(row=0, column=1, rowspan=1, pady=0, padx=0, sticky="nsew")
 
         # -- Setup Sidebar component --
-        self.sidebar.grid_rowconfigure(2, weight=1)
+        self.sidebar.grid_rowconfigure(4, weight=1)
 
         self.runAhkButton = customtkinter.CTkButton(master=self.sidebar, text="Start Running Macros", command=self.run_ahk)
         self.runAhkButton.grid(pady=(20, 0), padx=(20, 20), row=0, column=0)
@@ -338,13 +344,13 @@ class App(customtkinter.CTk):
         self.createNewRotaryEncoderMacroButton = customtkinter.CTkButton(master=self.sidebar, text="Create New Rotary Encoder Macro", command=self.open_new_rotary_encoder_macro_window)
         self.createNewRotaryEncoderMacroButton.grid(pady=(20, 0), padx=(20, 20), row=3, column=0)
 
-        self.debugModeLabel = customtkinter.CTkLabel(self.sidebar, text="Debug Mode:", anchor="w")
-        self.debugModeLabel.grid(row=4, column=0, padx=(20,20), pady=(20,0))
-        self.debugModeMenu = customtkinter.CTkOptionMenu(self.sidebar, values=["Remap to F1-F4", "Remap to F13-F16"], command=self.change_debug_mode)
-        self.debugModeMenu.grid(row=5, column=0, padx=(20,20), pady=(10, 20))
+        # self.debugModeLabel = customtkinter.CTkLabel(self.sidebar, text="Debug Mode:", anchor="w")
+        # self.debugModeLabel.grid(row=4, column=0, padx=(20,20), pady=(20,0))
+        # self.debugModeMenu = customtkinter.CTkOptionMenu(self.sidebar, values=["Remap to F1-F4", "Remap to F13-F16"], command=self.change_debug_mode)
+        # self.debugModeMenu.grid(row=5, column=0, padx=(20,20), pady=(10, 20))
 
         self.appearanceModeLabel = customtkinter.CTkLabel(self.sidebar, text="Appearance Mode:", anchor="w")
-        self.appearanceModeLabel.grid(row=6, column=0, padx=(20, 20), pady=(20, 0))
+        self.appearanceModeLabel.grid(row=5, column=0, padx=(20, 20), pady=(20, 0))
         self.appearanceModeMenu = customtkinter.CTkOptionMenu(self.sidebar, values=["Light", "Dark", "System"], command=self.change_appearance_mode)
         self.appearanceModeMenu.grid(row=7, column=0, padx=(20, 20), pady=(10, 20))
 
@@ -405,7 +411,7 @@ class App(customtkinter.CTk):
         self.createNewMacroWindow = None
         self.createNewEncoderMacroWindow = None
         self.searchWindow = None
-        self.debugModeMenu.set(self.debug_mode)
+        # self.debugModeMenu.set(self.debug_mode)
         self.appearanceModeMenu.set(self.appearance_mode)
         self.keyOneOptionMenu.set('--No Macro Selected--')
         self.keyTwoOptionMenu.set('--No Macro Selected--')
@@ -457,6 +463,7 @@ class App(customtkinter.CTk):
         self.createNewEncoderMacroWindow = CreateRotaryEncoderMacroWindow(self)
 
     def run_ahk(self):
+        self.stop_ahk()
         self.create_ahk_script()
         self.compile_ahk()
 
@@ -465,12 +472,12 @@ class App(customtkinter.CTk):
         f.write("#MaxHotkeysPerInterval 400\n\n")
 
         ids = [App.KEY1_id, App.KEY2_id, App.KEY3_id, App.KEY4_id]
-        if (self.debug_mode == "Remap to F1-F4"):
-            counter = 1
-            encCounter = 5
-        else:
-            counter = 13
-            encCounter = 17
+        # if (self.debug_mode == "Remap to F1-F4"):
+        #     counter = 1
+        #     encCounter = 5
+        # else:
+        counter = 13
+        encCounter = 17
 
         # Write to newly created text file with .ahk extension
         for id in ids:
@@ -501,10 +508,10 @@ class App(customtkinter.CTk):
                 case "Open Command Prompt at a Favorite Folder":
                     folderLocation: str = macro.userInput1
                     f.write(functionKey + "::Run cmd, " + folderLocation + "\n\n")
-                case "Run Command at a Favorite Folder":
-                    folderLocation: str = macro.userInput1
-                    command: str = macro.userInput2
-                    f.write(functionKey + '::\n{\n\tRun cmd, ' + folderLocation + '\n\tSleep 100\n\tSend, ' + command + '\n\tSleep 100\n\tSend, {Enter}\n\tReturn\n}\n\n')
+                # case "Run Command at a Favorite Folder":
+                #     folderLocation: str = macro.userInput1
+                #     command: str = macro.userInput2
+                #     f.write(functionKey + '::\n{\n\tRun cmd, ' + folderLocation + '\n\tSleep 100\n\tSend, ' + command + '\n\tSleep 100\n\tSend, {Enter}\n\tReturn\n}\n\n')
                 case "Open File Explorer at a Favorite Folder":
                     folderLocation: str = macro.userInput1
                     f.write(functionKey + "::Run " + folderLocation + "\n\n")
@@ -523,7 +530,7 @@ class App(customtkinter.CTk):
                     f.write(functionKey + "::Send " + message + "\n\n")
                 case "Media Next":
                     f.write(functionKey + "::Media_Next\n\n")
-                case "Media Prev":
+                case "Media Previous":
                     f.write(functionKey + "::Media_Prev\n\n")
                 case "Browser Back":
                     f.write(functionKey + "::Browser_Back\n\n")
