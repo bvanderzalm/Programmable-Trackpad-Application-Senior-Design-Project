@@ -280,14 +280,14 @@ class App(customtkinter.CTk):
         "Google Search Selected Text", "Copy HEX color code to clipboard", "Open Website", "Open Application", "Volume Up", "Volume Down", "Volume Mute", "Play/Pause Media",
         "Media Next", "Media Previous", "Browser Back", "Browser Forward", "Browser Refresh", "Insert preset message", "Empty Recycle Bin", "Open File Explorer at a Favorite Folder",
         "Open Command Prompt in current folder", "Run command in current folder",
-        "Open Command Prompt at a Favorite Folder", "Run Command at a Favorite Folder", 
+        "Open Command Prompt at a Favorite Folder", 
     ]
     MACRO_LIST_THAT_REQUIRE_CUSTOM_INPUT: list[str] = [
         "Open Website", "Open Application", "Run command in current folder", "Open Command Prompt at a Favorite Folder",
         "Open File Explorer at a Favorite Folder", "Insert preset message"
     ]
     CUSTOM_INPUT_PLACEHOLDER_MESSAGES: list[str] = [
-        "Type in a Website URL:", "Type in a Application Process (chrome.exe, notepad, etc.):", "Type in a Command (git status, cd Desktop, etc.):",
+        "Type in a Website URL in https format:", "Type in a Application Process (chrome.exe, notepad, etc.):", "Type in a Command (git status, cd Desktop, etc.):",
         "Type in a Folder Path Location:", "Type in a Folder Path Location:", "Type in a Template Message:"
     ]
     PRESETS: list[CustomMacroPreset] = []
@@ -457,6 +457,7 @@ class App(customtkinter.CTk):
         self.createNewEncoderMacroWindow = CreateRotaryEncoderMacroWindow(self)
 
     def run_ahk(self):
+        self.stop_ahk()
         self.create_ahk_script()
         self.compile_ahk()
 
@@ -501,10 +502,10 @@ class App(customtkinter.CTk):
                 case "Open Command Prompt at a Favorite Folder":
                     folderLocation: str = macro.userInput1
                     f.write(functionKey + "::Run cmd, " + folderLocation + "\n\n")
-                case "Run Command at a Favorite Folder":
-                    folderLocation: str = macro.userInput1
-                    command: str = macro.userInput2
-                    f.write(functionKey + '::\n{\n\tRun cmd, ' + folderLocation + '\n\tSleep 100\n\tSend, ' + command + '\n\tSleep 100\n\tSend, {Enter}\n\tReturn\n}\n\n')
+                # case "Run Command at a Favorite Folder":
+                #     folderLocation: str = macro.userInput1
+                #     command: str = macro.userInput2
+                #     f.write(functionKey + '::\n{\n\tRun cmd, ' + folderLocation + '\n\tSleep 100\n\tSend, ' + command + '\n\tSleep 100\n\tSend, {Enter}\n\tReturn\n}\n\n')
                 case "Open File Explorer at a Favorite Folder":
                     folderLocation: str = macro.userInput1
                     f.write(functionKey + "::Run " + folderLocation + "\n\n")
@@ -523,7 +524,7 @@ class App(customtkinter.CTk):
                     f.write(functionKey + "::Send " + message + "\n\n")
                 case "Media Next":
                     f.write(functionKey + "::Media_Next\n\n")
-                case "Media Prev":
+                case "Media Previous":
                     f.write(functionKey + "::Media_Prev\n\n")
                 case "Browser Back":
                     f.write(functionKey + "::Browser_Back\n\n")
