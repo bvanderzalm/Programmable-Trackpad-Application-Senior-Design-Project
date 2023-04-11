@@ -1,5 +1,9 @@
 # Programmable Trackpad
-Senior Design UCF Spring 2023 - Group 18
+Senior Design UCF Spring 2023 - Group 18 - Taylor Barnes (CpE), Jonah Halili (CpE), Brian Modica (CpE), Bradley Vanderzalm (CpE)
+
+https://programmabletrackpad-group18.web.app/
+
+<em>The programmable trackpad is a device that assists the productivity of PC users by implementing shortcut macro keys and rotary encoders in a trackpad device which serves as a replacement for a programmable mouse. This device gives users a method for performing common actions and opening frequently-used applications with a single button press. Users can program these shortcuts themselves with a simple computer application that requires no specialized knowledge. Now, PC users who prefer a trackpad can take advantage of the same convenience one would receive from a programmable mouse.</em>
 
 ## Build 1.2.1 (Improvements and Bug Fix)
 Improvements
