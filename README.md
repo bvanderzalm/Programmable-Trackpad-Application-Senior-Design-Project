@@ -5,6 +5,7 @@ Improvement
 * Cleaned up GUI grid and layout
 * Removed Debug dropdown and debug console window on final app.exe file
 * Added error popup messages on existing return checks in Create Encoder Macro Window
+* Adjusted instructions label for Create Website macro URL form input
 
 Bug Fixes
 * Fixed issue with Media Previous macro not showing up on .ahk file
